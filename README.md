@@ -1,4 +1,6 @@
-This is an experiment to learn how to make a basic [Pomodoro](http://pomodorotechnique.com/) menubar app in [Electron](http://electron.atom.io/). Feel free to watch me explore design ideas and to try to figure out how to implement them. I'll probably make lots of terrible decisions, but that's :ok_hand:. Feel free to chime in with feedback.
+This is an experiment to learn how to make a basic [Pomodoro](http://pomodorotechnique.com/) menubar app in [Electron](http://electron.atom.io/). Feel free to watch me explore design ideas and to try to figure out how to implement them. I'll probably make lots of terrible decisions, but that's ok. Feel free to chime in with feedback.
+
+I'll be using [this project board](https://github.com/jasonlong/mater/projects/1) to plan and track progress.
 
 ##### Initial mockup
 
