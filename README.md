@@ -2,7 +2,7 @@ This is an experiment to learn how to make a basic [Pomodoro](http://pomodorotec
 
 ##### Initial mockup
 
-<img src="https://cloud.githubusercontent.com/assets/6104/20082098/bc475e30-a521-11e6-97c8-a2bbf140b5f4.png" width="416" height="282">
+![mater 2x](https://cloud.githubusercontent.com/assets/6104/20139346/9f8d343a-a653-11e6-99a5-9094f7d9ec42.png)
 
 ----
 
