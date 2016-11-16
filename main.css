@@ -1,0 +1,16 @@
+.start-btn {
+  display: block;
+}
+
+.stop-btn {
+  display: none;
+}
+
+.is-running .start-btn {
+  display: none;
+}
+
+.is-running .stop-btn {
+  display: block;
+}
+
