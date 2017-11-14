@@ -34,11 +34,44 @@ body {
   text-align: center;
 }
 
+.ruler {
+  height: 15px;
+  background-image:
+    linear-gradient(
+      90deg,
+      #fff 0,
+      #fff 5%,
+      transparent 5%,
+      transparent 20%,
+      #fff 20%,
+      #fff 22%,
+      transparent 22%,
+      transparent 40%,
+      #fff 40%,
+      #fff 42%,
+      transparent 42%,
+      transparent 60%,
+      #fff 60%,
+      #fff 62%,
+      transparent 62%,
+      transparent 80%,
+      #fff 80%,
+      #fff 82%,
+      transparent 82%
+    );
+  background-repeat: repeat-x;
+  background-size: 100px 15px;
+}
+
 .groove {
   width: 100%;
   height: 6px;
   background-color: rgba(0, 0, 0, 0.5);
   box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.5);
+}
+
+.marker {
+  font-size: 1.5em;
 }
 
 .controls {
@@ -63,7 +96,6 @@ body {
 .is-running .stop-btn {
   display: inline-block;
 }
-
 
 .btn {
   padding: 0.5em 1.5em;
