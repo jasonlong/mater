@@ -8,7 +8,7 @@ const timeRemaining = document.querySelector('.js-time-remaining')
 let timer = new Timer()
 
 startBtn.addEventListener('click', () => {
-  timer.start(25 * 60 * 1000) // 25 seconds
+  timer.start(25 * 60 * 1000) // 25 minutes
   appContainer.classList.add('is-running')
 })
 

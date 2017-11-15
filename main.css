@@ -28,14 +28,27 @@ body {
 }
 
 .slider {
-  width: 100%;
+  position: relative;
+  top: 40px;
+  left: 110px;
+  width: 600px;
   height: 100px;
   align-self: flex-start;
-  text-align: center;
+  text-align: left;
+}
+
+.minute {
+  display: inline-block;
+  width: 100px;
+  margin-left: -5px;
+  font-size: 24px;
+  font-weight: bold;
 }
 
 .ruler {
+  width: 505px;
   height: 15px;
+  margin-top: 5px;
   background-image:
     linear-gradient(
       90deg,
@@ -77,6 +90,7 @@ body {
 .controls {
   width: 100%;
   height: 100px;
+  margin-top: 6px;
   align-self: flex-end;
   text-align: center;
 }
