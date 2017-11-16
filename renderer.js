@@ -1,3 +1,6 @@
+// Get menubar instance from main.js
+const mb = require('electron').remote.getGlobal('sharedObject').mb
+
 const Timer = require('tiny-timer')
 
 const appContainer = document.querySelector('.js-app-container')
@@ -20,7 +23,11 @@ stopBtn.addEventListener('click', () => {
 })
 
 timer.on('tick', (ms) => {
-  slider.style.transform = 'translateX(-' + (500*ms)/(numMinutes*60*1000) + 'px)';
+  slider.classList.remove('is-resetting')
+  slider.style.transform = 'translateX(-' + Math.ceil((500*ms)/(numMinutes*60*1000)) + 'px)';
 })
 
-timer.on('done', () => console.log('done!'))
+timer.on('done', () => {
+  appContainer.classList.remove('is-running')
+  mb.showWindow()
+})
