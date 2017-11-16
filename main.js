@@ -4,6 +4,11 @@ const mb = menubar({width: 220, height: 206, preloadWindow: true})
 
 require('electron-reload')(__dirname);
 
+// Make menubar accessible to the renderer
+global.sharedObject = {
+  mb: mb
+}
+
 mb.on('ready', () => {
   console.log('app is ready')
 })
