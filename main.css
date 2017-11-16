@@ -25,10 +25,10 @@ body {
   left: 297px; /* (600 / 2 - half of width of start line) */
   width: 600px;
   text-align: left;
-  transition: 0.5s ease-in-out;
 }
 
 .slider.is-resetting {
+  transition: 0.5s ease-in-out;
   transform: translateX(-500px);
 }
 
