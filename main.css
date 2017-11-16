@@ -68,13 +68,12 @@ body {
 
 .groove {
   width: 100%;
-  height: 6px;
   background-color: rgba(0, 0, 0, 0.5);
   box-shadow: inset 0 2px 2px rgba(0, 0, 0, 0.5);
 }
 
 .marker {
-  font-size: 1.5em;
+  font-size: 1.8em;
 }
 
 .controls {
@@ -100,17 +99,22 @@ body {
 }
 
 .btn {
+  width: 80px;
   padding: 0.5em 1.5em;
   font-size: 1.125rem;
   font-weight: 500;
-  color: var(--red);
+  color: #4e0300;
   background-color: var(--white);
   border: 0;
   border-radius: 100px;
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.is-running .btn {
+  color: var(--red);
 }
 
 .btn:active {
   outline: none;
-  box-shadow: 0 1px 1px -1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
