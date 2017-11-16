@@ -4,7 +4,6 @@
 }
 
 html {
-  height: 100%;
   font: caption; /* system font */
   color: var(--white);
   background-color: var(--red);
@@ -13,27 +12,18 @@ html {
 }
 
 body {
+  display: grid;
+  height: 100vh;
   margin: 0;
-}
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  justify-items: center;
   justify-content: center;
-}
-
-.flex-item {
-  flex: 0 1 auto;
+  grid-template-rows: 41px 58px 6px 36px 64px;
 }
 
 .slider {
   position: relative;
-  top: 40px;
-  left: 110px;
+  left: 297px; /* (600 / 2 - half of width of start line) */
   width: 600px;
-  height: 100px;
-  align-self: flex-start;
   text-align: left;
 }
 
@@ -89,9 +79,7 @@ body {
 
 .controls {
   width: 100%;
-  height: 100px;
   margin-top: 6px;
-  align-self: flex-end;
   text-align: center;
 }
 
