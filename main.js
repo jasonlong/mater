@@ -1,6 +1,8 @@
 const electron = require('electron')
 const menubar = require('menubar')
-const mb = menubar({width: 220, height: 220})
+const mb = menubar({width: 220, height: 206, preloadWindow: true})
+
+require('electron-reload')(__dirname);
 
 mb.on('ready', () => {
   console.log('app is ready')
@@ -8,5 +10,6 @@ mb.on('ready', () => {
 
 mb.on('after-create-window', () => {
   mb.window.loadURL(`file://${__dirname}/index.html`)
+  // mb.window.openDevTools()
 })
 

@@ -3,23 +3,24 @@ const Timer = require('tiny-timer')
 const appContainer = document.querySelector('.js-app-container')
 const startBtn = document.querySelector('.js-start-btn')
 const stopBtn = document.querySelector('.js-stop-btn')
-const timeRemaining = document.querySelector('.js-time-remaining')
+const slider = document.querySelector('.js-slider')
+const numMinutes = 25
 
 let timer = new Timer()
 
 startBtn.addEventListener('click', () => {
-  timer.start(25 * 60 * 1000) // 25 seconds
+  timer.start(numMinutes * 60 * 1000)
   appContainer.classList.add('is-running')
+  slider.classList.add('is-resetting')
 })
 
 stopBtn.addEventListener('click', () => {
   timer.stop()
   appContainer.classList.remove('is-running')
-  timeRemaining.innerHTML = "1500000ms remaining"
 })
 
 timer.on('tick', (ms) => {
-  timeRemaining.innerHTML = ms + "ms remaining"
+  slider.style.transform = 'translateX(-' + (500*ms)/(numMinutes*60*1000) + 'px)';
 })
 
 timer.on('done', () => console.log('done!'))

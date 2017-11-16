@@ -5,19 +5,26 @@
     <title>Mater</title>
     <link rel="stylesheet" href="main.css">
   </head>
-  <body class="app-container js-app-container">
-    <div class="js-time-remaining">
-      1500000ms remaining
+  <body class="js-app-container">
+    <div class="todo"><!--todo--></div>
+    <div class="slider js-slider">
+      <span class="minute">0</span>
+      <span class="minute">5</span>
+      <span class="minute">10</span>
+      <span class="minute">15</span>
+      <span class="minute">20</span>
+      <span class="minute">25</span>
+      <div class="ruler"></div>
     </div>
 
-    <p>
-      <button type="button" class="start-btn js-start-btn">Start</button>
-      <button type="button" class="stop-btn js-stop-btn">Stop</button>
+    <div class="groove"></div>
+    <div class="marker">▲</div>
+
+    <p class="controls">
+      <button type="button" class="btn start-btn js-start-btn">Start</button>
+      <button type="button" class="btn stop-btn js-stop-btn">Stop</button>
     </p>
   </body>
 
-  <script>
-    // You can also require other files to run in this process
-    require('./renderer.js')
-  </script>
+  <script>require('./renderer.js')</script>
 </html>
