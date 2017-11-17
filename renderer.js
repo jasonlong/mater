@@ -11,13 +11,23 @@ const numMinutes = 25
 
 let timer = new Timer()
 
+const soundWindup = new Audio(__dirname + '/wav/windup.wav');
+const soundClick = new Audio(__dirname + '/wav/click.wav');
+const soundDing = new Audio(__dirname + '/wav/ding.wav');
+
 startBtn.addEventListener('click', () => {
+  soundWindup.currentTime = 0;
+  soundWindup.volume = 0.5;
+  soundWindup.play();
   timer.start(numMinutes * 60 * 1000)
   appContainer.classList.add('is-running')
   slider.classList.add('is-resetting')
 })
 
 stopBtn.addEventListener('click', () => {
+  soundClick.currentTime = 0;
+  soundClick.volume = 0.5;
+  soundClick.play();
   timer.stop()
   appContainer.classList.remove('is-running')
 })
@@ -28,6 +38,9 @@ timer.on('tick', (ms) => {
 })
 
 timer.on('done', () => {
+  soundDing.currentTime = 0;
+  soundDing.volume = 0.5;
+  soundDing.play();
   appContainer.classList.remove('is-running')
   mb.showWindow()
 })
