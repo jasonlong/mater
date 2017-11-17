@@ -1,6 +1,11 @@
 const electron = require('electron')
 const menubar = require('menubar')
-const mb = menubar({width: 220, height: 206, preloadWindow: true})
+const mb = menubar({
+  width: 220,
+  height: 206,
+  preloadWindow: true,
+  icon: `${__dirname}/img/icon-0-Template.png`
+})
 
 require('electron-reload')(__dirname);
 
