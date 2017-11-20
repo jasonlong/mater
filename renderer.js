@@ -8,6 +8,7 @@ const startBtn = document.querySelector('.js-start-btn')
 const stopBtn = document.querySelector('.js-stop-btn')
 const slider = document.querySelector('.js-slider')
 const numMinutes = 25
+let currentMinute = 0
 
 let timer = new Timer()
 
@@ -35,6 +36,7 @@ stopBtn.addEventListener('click', () => {
 timer.on('tick', (ms) => {
   slider.classList.remove('is-resetting')
   slider.style.transform = 'translateX(-' + Math.ceil((500*ms)/(numMinutes*60*1000)) + 'px)';
+  setCurrentMinute(ms)
 })
 
 timer.on('done', () => {
@@ -42,5 +44,11 @@ timer.on('done', () => {
   soundDing.volume = 0.5;
   soundDing.play();
   appContainer.classList.remove('is-running')
+  mb.tray.setImage(`${__dirname}/img/icon-0-Template.png`)
   mb.showWindow()
 })
+
+function setCurrentMinute(ms) {
+  currentMinute = Math.ceil(ms / 60 / 1000)
+  mb.tray.setImage(`${__dirname}/img/icon-${currentMinute}-Template.png`)
+}
