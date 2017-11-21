@@ -1,9 +1,10 @@
 :root {
   --red: #f40c05;
+  --green: #18c93b;
   --white: #fff;
 }
 
-html {
+.app {
   font: caption; /* system font */
   color: var(--white);
   background-color: var(--red);
@@ -11,7 +12,12 @@ html {
   background-size: cover;
 }
 
-body {
+.app.is-break {
+  background-color: var(--red);
+  background-image: linear-gradient(var(--green), #17bb3c);
+}
+
+.container {
   display: grid;
   height: 100vh;
   margin: 0;
