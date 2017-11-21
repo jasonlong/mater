@@ -20,6 +20,6 @@ mb.on('ready', () => {
 
 mb.on('after-create-window', () => {
   mb.window.loadURL(`file://${__dirname}/index.html`)
-  // mb.window.openDevTools()
+  mb.window.openDevTools()
 })
 

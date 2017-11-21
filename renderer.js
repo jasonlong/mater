@@ -18,7 +18,6 @@ const soundDing = new Audio(__dirname + '/wav/ding.wav');
 
 startBtn.addEventListener('click', () => {
   soundWindup.currentTime = 0;
-  soundWindup.volume = 0.5;
   soundWindup.play();
   timer.start(numMinutes * 60 * 1000)
   appContainer.classList.add('is-running')
@@ -27,7 +26,6 @@ startBtn.addEventListener('click', () => {
 
 stopBtn.addEventListener('click', () => {
   soundClick.currentTime = 0;
-  soundClick.volume = 0.5;
   soundClick.play();
   timer.stop()
   appContainer.classList.remove('is-running')
@@ -41,14 +39,13 @@ timer.on('tick', (ms) => {
 
 timer.on('done', () => {
   soundDing.currentTime = 0;
-  soundDing.volume = 0.5;
   soundDing.play();
   appContainer.classList.remove('is-running')
   mb.tray.setImage(`${__dirname}/img/icon-0-Template.png`)
   mb.showWindow()
 })
 
-function setCurrentMinute(ms) {
+const setCurrentMinute = ms => {
   currentMinute = Math.ceil(ms / 60 / 1000)
   mb.tray.setImage(`${__dirname}/img/icon-${currentMinute}-Template.png`)
 }
