@@ -1,23 +1,53 @@
 :root {
   --red: #f40c05;
+  --green: #18c93b;
   --white: #fff;
 }
 
-html {
+.app {
+  width: 100%;
+  height: 100%;
   font: caption; /* system font */
   color: var(--white);
-  background-color: var(--red);
-  background-image: linear-gradient(var(--red), #e60b05);
-  background-size: cover;
 }
 
-body {
+.container {
+  position: relative;
   display: grid;
   height: 100vh;
   margin: 0;
   justify-items: center;
   justify-content: center;
   grid-template-rows: 41px 58px 6px 36px 64px;
+}
+
+.ui-bg {
+  position: absolute;
+  z-index: -1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  content: "";
+  background-size: cover;
+  transition: opacity 0.5s linear;
+}
+
+.ui-bg-working {
+  background-image: linear-gradient(var(--red), #e60b05);
+  opacity: 1;
+}
+
+.ui-bg-breaking {
+  background-image: linear-gradient(var(--green), #17bb3c);
+  opacity: 0;
+}
+
+.is-breaking .ui-bg-working {
+  opacity: 0;
+}
+
+.is-breaking .ui-bg-breaking {
+  opacity: 1;
 }
 
 .slider {
@@ -27,9 +57,14 @@ body {
   text-align: left;
 }
 
-.slider.is-resetting {
+.slider.is-resetting-work {
   transition: 0.5s ease-in-out;
   transform: translateX(-500px);
+}
+
+.slider.is-resetting-break {
+  transition: 0.5s ease-in-out;
+  transform: translateX(-100px);
 }
 
 .minute {
@@ -95,11 +130,13 @@ body {
   display: none;
 }
 
-.is-running .start-btn {
+.is-breaking .start-btn,
+.is-working .start-btn {
   display: none;
 }
 
-.is-running .stop-btn {
+.is-breaking .stop-btn,
+.is-working .stop-btn {
   display: inline-block;
 }
 
@@ -115,7 +152,7 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.is-running .btn {
+.is-working .btn {
   color: var(--red);
 }
 

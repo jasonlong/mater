@@ -1,54 +1,91 @@
+'use strict'
+
 // Get menubar instance from main.js
 const mb = require('electron').remote.getGlobal('sharedObject').mb
 
-const Timer = require('tiny-timer')
-
-const appContainer = document.querySelector('.js-app-container')
+// DOM elements
+const appContainer = document.querySelector('.js-app')
 const startBtn = document.querySelector('.js-start-btn')
 const stopBtn = document.querySelector('.js-stop-btn')
 const slider = document.querySelector('.js-slider')
-const numMinutes = 25
+
+// State
+let state = ""
+const setState = newState => {
+  appContainer.classList.remove('is-stopped', 'is-working', 'is-breaking')
+  appContainer.classList.add(`is-${newState}`)
+  state = newState
+}
+setState("stopped")
 let currentMinute = 0
 
-let timer = new Timer()
+const minToMs = min => min * 60 * 1000
+const msToMin = ms => ms / 60 / 1000
 
+const setCurrentMinute = ms => {
+  currentMinute = Math.ceil(msToMin(ms))
+  let breakSuffix = state == "breaking" ? "-break" : ""
+  mb.tray.setImage(`${__dirname}/img/icon-${currentMinute}${breakSuffix}-Template.png`)
+}
+setCurrentMinute(0)
+
+// Sounds
 const soundWindup = new Audio(__dirname + '/wav/windup.wav');
 const soundClick = new Audio(__dirname + '/wav/click.wav');
 const soundDing = new Audio(__dirname + '/wav/ding.wav');
 
+const playSound = sound => {
+  sound.currentTime = 0;
+  sound.play();
+}
+
+// Timer stuff
+const Timer = require('tiny-timer')
+const workMinutes = 25
+const breakMinutes = 5
+let timer = new Timer()
+
 startBtn.addEventListener('click', () => {
-  soundWindup.currentTime = 0;
-  soundWindup.volume = 0.5;
-  soundWindup.play();
-  timer.start(numMinutes * 60 * 1000)
-  appContainer.classList.add('is-running')
-  slider.classList.add('is-resetting')
+  playSound(soundWindup)
+  timer.start(minToMs(workMinutes))
+  setState("working")
+  slider.classList.add('is-resetting-work')
+  setTimeout(() => slider.classList.remove('is-resetting-work'), 1000)
 })
 
 stopBtn.addEventListener('click', () => {
-  soundClick.currentTime = 0;
-  soundClick.volume = 0.5;
-  soundClick.play();
+  playSound(soundClick)
   timer.stop()
-  appContainer.classList.remove('is-running')
+  setState("stopped")
 })
 
+const getCurrentMinutes = () => state == "breaking" ? breakMinutes : workMinutes
+const getCurrentSliderWidth = () => state == "breaking" ? 100 : 500
+
 timer.on('tick', (ms) => {
-  slider.classList.remove('is-resetting')
-  slider.style.transform = 'translateX(-' + Math.ceil((500*ms)/(numMinutes*60*1000)) + 'px)';
+  let minutes = getCurrentMinutes()
+  let sliderWidth = getCurrentSliderWidth()
+  slider.style.transform = 'translateX(-' + Math.ceil((sliderWidth*ms)/(minToMs(minutes))) + 'px)';
   setCurrentMinute(ms)
 })
 
 timer.on('done', () => {
-  soundDing.currentTime = 0;
-  soundDing.volume = 0.5;
-  soundDing.play();
-  appContainer.classList.remove('is-running')
-  mb.tray.setImage(`${__dirname}/img/icon-0-Template.png`)
+  playSound(soundDing)
+  setCurrentMinute(0)
   mb.showWindow()
-})
 
-function setCurrentMinute(ms) {
-  currentMinute = Math.ceil(ms / 60 / 1000)
-  mb.tray.setImage(`${__dirname}/img/icon-${currentMinute}-Template.png`)
-}
+  setTimeout(() => {
+    playSound(soundWindup)
+    if (state == "working") {
+      setState("breaking")
+      timer.start(minToMs(breakMinutes))
+      slider.classList.add('is-resetting-break')
+      setTimeout(() => slider.classList.remove('is-resetting-break'), 1000)
+    } else {
+      setState("working")
+      timer.start(minToMs(breakMinutes))
+      slider.classList.add('is-resetting-work')
+      setTimeout(() => slider.classList.remove('is-resetting-work'), 1000)
+    }
+  } , 2000)
+})
