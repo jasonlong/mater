@@ -4,7 +4,7 @@ const mb = menubar({
   width: 220,
   height: 206,
   preloadWindow: true,
-  alwaysOnTop: true,
+  // alwaysOnTop: true,
   icon: `${__dirname}/img/icon-0-Template.png`
 })
 
@@ -21,6 +21,6 @@ mb.on('ready', () => {
 
 mb.on('after-create-window', () => {
   mb.window.loadURL(`file://${__dirname}/index.html`)
-  mb.window.openDevTools()
+  // mb.window.openDevTools()
 })
 

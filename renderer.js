@@ -42,15 +42,14 @@ const playSound = sound => {
 const Timer = require('tiny-timer')
 const workMinutes = 25
 const breakMinutes = 5
-const sliderWidth = 500
 let timer = new Timer()
 
 startBtn.addEventListener('click', () => {
   playSound(soundWindup)
   timer.start(minToMs(workMinutes))
   setState("working")
-  slider.classList.add('is-resetting')
-  setTimeout(() => slider.classList.remove('is-resetting'), 1500)
+  slider.classList.add('is-resetting-work')
+  setTimeout(() => slider.classList.remove('is-resetting-work'), 1000)
 })
 
 stopBtn.addEventListener('click', () => {
@@ -59,14 +58,33 @@ stopBtn.addEventListener('click', () => {
   setState("stopped")
 })
 
+const getCurrentMinutes = () => state == "breaking" ? breakMinutes : workMinutes
+const getCurrentSliderWidth = () => state == "breaking" ? 100 : 500
+
 timer.on('tick', (ms) => {
-  slider.style.transform = 'translateX(-' + Math.ceil((sliderWidth*ms)/(minToMs(workMinutes))) + 'px)';
+  let minutes = getCurrentMinutes()
+  let sliderWidth = getCurrentSliderWidth()
+  slider.style.transform = 'translateX(-' + Math.ceil((sliderWidth*ms)/(minToMs(minutes))) + 'px)';
   setCurrentMinute(ms)
 })
 
 timer.on('done', () => {
   playSound(soundDing)
-  setState("stopped")
   setCurrentMinute(0)
   mb.showWindow()
+
+  setTimeout(() => {
+    playSound(soundWindup)
+    if (state == "working") {
+      setState("breaking")
+      timer.start(minToMs(breakMinutes))
+      slider.classList.add('is-resetting-break')
+      setTimeout(() => slider.classList.remove('is-resetting-break'), 1000)
+    } else {
+      setState("working")
+      timer.start(minToMs(breakMinutes))
+      slider.classList.add('is-resetting-work')
+      setTimeout(() => slider.classList.remove('is-resetting-work'), 1000)
+    }
+  } , 2000)
 })

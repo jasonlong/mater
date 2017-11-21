@@ -57,9 +57,14 @@
   text-align: left;
 }
 
-.slider.is-resetting {
+.slider.is-resetting-work {
   transition: 0.5s ease-in-out;
   transform: translateX(-500px);
+}
+
+.slider.is-resetting-break {
+  transition: 0.5s ease-in-out;
+  transform: translateX(-100px);
 }
 
 .minute {
@@ -125,10 +130,12 @@
   display: none;
 }
 
+.is-breaking .start-btn,
 .is-working .start-btn {
   display: none;
 }
 
+.is-breaking .stop-btn,
 .is-working .stop-btn {
   display: inline-block;
 }
