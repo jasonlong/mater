@@ -24,7 +24,8 @@ const msToMin = ms => ms / 60 / 1000
 
 const setCurrentMinute = ms => {
   currentMinute = Math.ceil(msToMin(ms))
-  mb.tray.setImage(`${__dirname}/img/icon-${currentMinute}-Template.png`)
+  let breakSuffix = state == "breaking" ? "-break" : ""
+  mb.tray.setImage(`${__dirname}/img/icon-${currentMinute}${breakSuffix}-Template.png`)
 }
 setCurrentMinute(0)
 
