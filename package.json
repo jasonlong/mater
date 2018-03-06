@@ -1,10 +1,14 @@
 {
   "name": "mater",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A Pomodoro menubar app",
   "main": "main.js",
   "scripts": {
     "start": "electron main.js",
+    "build": "run-s build:*",
+    "build:mac": "electron-packager . Mater --platform=darwin --arch=x64 --overwrite --icon=mater",
+    "build:linux": "electron-packager . Mater --platform=linux --arch=x64 --overwrite --icon=mater",
+    "build:win": "electron-packager . Mater --platform=win32 --arch=x64 --overwrite --icon=mater",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -26,13 +30,15 @@
   "homepage": "https://github.com/jasonlong/mater",
   "dependencies": {
     "electron-is-dev": "^0.3.0",
+    "electron-packager": "^8.0.0",
     "menubar": "^5.2.3",
+    "npm": "^5.7.1",
     "stylelint-config-primer": "^1.4.0",
     "tiny-timer": "^1.1.1"
   },
   "devDependencies": {
     "devtron": "^1.4.0",
     "electron": "^1.7.11",
-    "electron-reload": "^1.2.2"
+    "npm-run-all": "^2.1.1"
   }
 }
