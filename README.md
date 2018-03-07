@@ -1,15 +1,26 @@
-This is an experiment to learn how to make a basic [Pomodoro](http://pomodorotechnique.com/) menubar app in [Electron](http://electron.atom.io/). Feel free to watch me explore design ideas and to try to figure out how to implement them. I'll probably make lots of terrible decisions, but that's ok. I'll try to document how I figured out how to do each step.
+This is a minimal menubar Pomodoro app written in Electron. It simply runs a 25 minute timer, resets for a 5 minute break, and repeats until you stop it.
 
-📣 Feel free to chime in with feedback.
+### Installation
 
-**I'll be using [this project board](https://github.com/jasonlong/mater/projects/1) to plan and track progress.**
+There are binaries built for Mac, Windows, and Linux on the [releases page](https://github.com/jasonlong/mater/releases). 
 
-##### Initial mockup
+_Note: Curently, I'm not able to test the Windows and Linux builds, so please open an issue if you have any problems._
 
-![mater 2x](https://cloud.githubusercontent.com/assets/6104/20139346/9f8d343a-a653-11e6-99a5-9094f7d9ec42.png)
+### Contributions
 
-----
+I don't have plans to add much else at this time, so please open an issue to discuss any feature ideas before implementing them.
 
-["Like Ta-mater without the ta"](https://youtu.be/MJm8vNTasMg?t=25s).
+### Development
+
+```
+$ git clone https://github.com/jasonlong/mater
+$ cd mater
+$ npm install
+$ npm start
+```
+
+### What's with the name?
+
+I'm a Pixar fan and Mater is awesome. ["Like Ta-mater without the ta"](https://youtu.be/MJm8vNTasMg?t=25s). Get it?
 
 ![mate2](https://cloud.githubusercontent.com/assets/6104/20083476/8dcb077e-a52a-11e6-962f-828c437f6011.jpg)
