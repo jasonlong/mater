@@ -1,3 +1,5 @@
+![mater-sm](https://user-images.githubusercontent.com/6104/37107543-9627589a-2202-11e8-825b-c68b248610ce.gif)
+
 This is a minimal menubar Pomodoro app written in Electron. It simply runs a 25 minute timer, resets for a 5 minute break, and repeats until you stop it.
 
 ### Installation
