@@ -1,6 +1,6 @@
 {
   "name": "mater",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Pomodoro menubar app",
   "main": "main.js",
   "scripts": {
