@@ -1,5 +1,6 @@
 ## Mater
 
+![GitHub release](https://img.shields.io/github/release/jasonlong/mater.svg)
 [![dependencies Status](https://david-dm.org/jasonlong/mater/status.svg)](https://david-dm.org/jasonlong/mater)
 [![devDependencies Status](https://david-dm.org/jasonlong/mater/dev-status.svg)](https://david-dm.org/jasonlong/mater?type=dev)
 
