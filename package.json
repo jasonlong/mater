@@ -1,6 +1,6 @@
 {
   "name": "mater",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A Pomodoro menubar app",
   "main": "main.js",
   "scripts": {
@@ -30,15 +30,14 @@
   "homepage": "https://github.com/jasonlong/mater",
   "dependencies": {
     "electron-is-dev": "^0.3.0",
-    "electron-packager": "^8.0.0",
+    "electron-packager": "^11.1.0",
     "menubar": "^5.2.3",
     "npm": "^5.7.1",
-    "stylelint-config-primer": "^1.4.0",
     "tiny-timer": "^1.1.1"
   },
   "devDependencies": {
     "devtron": "^1.4.0",
-    "electron": "^1.7.11",
-    "npm-run-all": "^2.1.1"
+    "electron": "^1.8.3",
+    "npm-run-all": "^4.1.2"
   }
 }
