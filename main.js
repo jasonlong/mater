@@ -1,7 +1,8 @@
 const {Menu} = require('electron')
 const menubar = require('menubar')
 
-require('electron-debug')({showDevTools: true});
+// Toggle with cmd + alt + i
+require('electron-debug')({showDevTools: true})
 
 const mb = menubar({
   width: 220,
