@@ -29,8 +29,6 @@
   },
   "homepage": "https://github.com/jasonlong/mater",
   "dependencies": {
-    "electron-is-dev": "^0.3.0",
-    "electron-packager": "^11.1.0",
     "menubar": "^5.2.3",
     "npm": "^5.7.1",
     "tiny-timer": "^1.1.1"
@@ -38,6 +36,7 @@
   "devDependencies": {
     "devtron": "^1.4.0",
     "electron": "^1.8.3",
+    "electron-packager": "^11.1.0",
     "npm-run-all": "^4.1.2"
   }
 }
