@@ -9,7 +9,7 @@
     "build:mac": "electron-packager . Mater --platform=darwin --arch=x64 --overwrite --icon=mater",
     "build:linux": "electron-packager . Mater --platform=linux --arch=x64 --overwrite --icon=mater",
     "build:win": "electron-packager . Mater --platform=win32 --arch=x64 --overwrite --icon=mater",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "xo"
   },
   "repository": {
     "type": "git",
@@ -29,6 +29,8 @@
   },
   "homepage": "https://github.com/jasonlong/mater",
   "dependencies": {
+    "electron-debug": "^1.5.0",
+    "electron-osx-sign": "^0.4.10",    
     "menubar": "^5.2.3",
     "npm": "^5.7.1",
     "tiny-timer": "^1.1.1"
@@ -37,6 +39,16 @@
     "devtron": "^1.4.0",
     "electron": "^1.8.3",
     "electron-packager": "^11.1.0",
-    "npm-run-all": "^4.1.2"
+    "npm-run-all": "^4.1.2",
+    "xo": "^0.20.3"
+  },
+  "xo": {
+    "global": [
+      "Audio",
+      "document",
+      "path"
+    ],
+    "semicolon": false,
+    "space": true
   }
 }
