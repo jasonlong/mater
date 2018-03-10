@@ -1,5 +1,7 @@
 ## Mater
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/jasonlong/mater.svg)](https://greenkeeper.io/)
+
 [![GitHub release](https://img.shields.io/github/release/jasonlong/mater.svg)](https://github.com/jasonlong/mater/releases/latest)
 [![Travis](https://img.shields.io/travis/jasonlong/mater.svg)](https://travis-ci.org/jasonlong/mater)
 [![dependencies Status](https://david-dm.org/jasonlong/mater/status.svg)](https://david-dm.org/jasonlong/mater)
