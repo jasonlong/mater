@@ -7,18 +7,20 @@
 .app {
   width: 100%;
   height: 100%;
-  font: caption; /* system font */
-  color: var(--white);
   overflow: hidden;
+
+  /* system font */
+  font: caption; /* stylelint-disable-line font-family-no-missing-generic-family-keyword */
+  color: var(--white);
 }
 
 .container {
   position: relative;
   display: grid;
-  height: 100vh;
-  margin: 0;
   justify-items: center;
   justify-content: center;
+  height: 100vh;
+  margin: 0;
   grid-template-rows: 41px 58px 6px 36px 64px;
 }
 
