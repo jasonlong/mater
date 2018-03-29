@@ -4,7 +4,7 @@ const menubar = require('menubar')
 // Toggle with cmd + alt + i
 require('electron-debug')({showDevTools: true})
 
-const initialIcon = (process.platform === 'darwin' ? `${__dirname}/img/icon-0-Template.png` : `${__dirname}/img/ico/icon-0.ico`)
+const initialIcon = `${__dirname}/img/png/blank.png`
 
 const mb = menubar({
   width: 220,
