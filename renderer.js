@@ -51,9 +51,9 @@ const setState = newState => {
 }
 setState('stopped')
 
-const setIcon = currentMinute => {
+const setIcon = (currentMinute, currentState) => {
   let file = ''
-  const breakSuffix = state === 'breaking' ? '-break' : ''
+  const breakSuffix = currentState === 'breaking' ? '-break' : ''
 
   switch (process.platform) {
     case 'darwin':
@@ -70,7 +70,7 @@ const setIcon = currentMinute => {
 
 const setCurrentMinute = ms => {
   currentMinute = Math.ceil(msToMin(ms))
-  setIcon(currentMinute)
+  setIcon(currentMinute, state)
 }
 setCurrentMinute(0)
 
