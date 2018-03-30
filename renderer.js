@@ -51,10 +51,26 @@ const setState = newState => {
 }
 setState('stopped')
 
+const setIcon = (currentMinute, currentState) => {
+  let file = ''
+  const breakSuffix = currentState === 'breaking' ? '-break' : ''
+
+  switch (process.platform) {
+    case 'darwin':
+      file = `${__dirname}/img/template/icon-${currentMinute}${breakSuffix}-Template.png`
+      break
+    case 'win32':
+      file = `${__dirname}/img/ico/icon-${currentMinute}${breakSuffix}.ico`
+      break
+    default:
+      file = `${__dirname}/img/png/icon-${currentMinute}${breakSuffix}.png`
+  }
+  mb.tray.setImage(file)
+}
+
 const setCurrentMinute = ms => {
   currentMinute = Math.ceil(msToMin(ms))
-  const breakSuffix = state === 'breaking' ? '-break' : ''
-  mb.tray.setImage(`${__dirname}/img/icon-${currentMinute}${breakSuffix}-Template.png`)
+  setIcon(currentMinute, state)
 }
 setCurrentMinute(0)
 

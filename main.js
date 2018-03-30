@@ -4,11 +4,13 @@ const menubar = require('menubar')
 // Toggle with cmd + alt + i
 require('electron-debug')({showDevTools: true})
 
+const initialIcon = `${__dirname}/img/png/blank.png`
+
 const mb = menubar({
   width: 220,
   height: 206,
   preloadWindow: true,
-  icon: `${__dirname}/img/icon-0-Template.png`
+  icon: initialIcon
 })
 
 // Make menubar accessible to the renderer
