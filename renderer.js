@@ -4,7 +4,7 @@
 // =============================================================================
 
 // Get menubar instance from main.js
-const mb = require('electron').remote.getGlobal('sharedObject').mb
+const {mb} = require('electron').remote.getGlobal('sharedObject')
 const path = require('path')
 const Timer = require('tiny-timer')
 
