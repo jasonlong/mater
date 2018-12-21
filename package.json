@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "devtron": "^1.4.0",
-    "electron": "^3.0.0",
+    "electron": "^4.0.0",
     "electron-packager": "^13.0.0",
     "npm-run-all": "^4.1.2",
     "stylelint": "^9.1.1",
