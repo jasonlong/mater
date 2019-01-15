@@ -49,6 +49,7 @@ const setState = newState => {
   appContainer.classList.add(`is-${newState}`)
   state = newState
 }
+
 setState('stopped')
 
 const setIcon = (currentMinute, currentState) => {
@@ -65,6 +66,7 @@ const setIcon = (currentMinute, currentState) => {
     default:
       file = `${__dirname}/img/png/icon-${currentMinute}${breakSuffix}.png`
   }
+
   mb.tray.setImage(file)
 }
 
@@ -72,6 +74,7 @@ const setCurrentMinute = ms => {
   currentMinute = Math.ceil(msToMin(ms))
   setIcon(currentMinute, state)
 }
+
 setCurrentMinute(0)
 
 // Event handlers
