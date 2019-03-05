@@ -1,6 +1,6 @@
 const {Menu} = require('electron')
-const menubar = require('menubar')
 const platform = require('os').platform()
+const menubar = require('menubar')
 
 // Toggle with cmd + alt + i
 require('electron-debug')({showDevTools: true})
