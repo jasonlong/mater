@@ -1,5 +1,6 @@
 const {Menu} = require('electron')
 const menubar = require('menubar')
+const platform = require('os').platform()
 
 // Toggle with cmd + alt + i
 require('electron-debug')({showDevTools: true})
@@ -18,6 +19,12 @@ global.sharedObject = {mb}
 
 mb.on('ready', () => {
   console.log('app is ready')
+  // Workaround to fix window position when statusbar at top for win32
+  if (platform === 'win32') {
+    if (mb.tray.getBounds().y < 5) {
+      mb.setOption('windowPosition', 'trayCenter')
+    }
+  }
 })
 
 mb.on('after-create-window', () => {
