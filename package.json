@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/jasonlong/mater",
   "dependencies": {
-    "electron-debug": "^2.1.0",
+    "electron-debug": "^3.0.0",
     "electron-osx-sign": "^0.4.11",
     "menubar": "^5.2.3",
     "npm": "^6.8.0",
