@@ -1,7 +1,7 @@
 ## Mater
 
 [![GitHub release](https://img.shields.io/github/release/jasonlong/mater.svg)](https://github.com/jasonlong/mater/releases/latest)
-[![Travis](https://img.shields.io/travis/jasonlong/mater.svg)](https://travis-ci.org/jasonlong/mater)
+![Node.js CI](https://github.com/jasonlong/mater/workflows/Node.js%20CI/badge.svg)
 [![Greenkeeper badge](https://badges.greenkeeper.io/jasonlong/mater.svg)](https://greenkeeper.io/)
 [![dependencies Status](https://david-dm.org/jasonlong/mater/status.svg)](https://david-dm.org/jasonlong/mater)
 [![devDependencies Status](https://david-dm.org/jasonlong/mater/dev-status.svg)](https://david-dm.org/jasonlong/mater?type=dev)
