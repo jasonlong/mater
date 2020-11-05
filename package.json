@@ -33,7 +33,7 @@
   "dependencies": {
     "electron-debug": "^3.0.1",
     "electron-osx-sign": "^0.4.13",
-    "menubar": "^5.2.3",
+    "menubar": "^9.0.1",
     "tiny-timer": "^1.5.0"
   },
   "devDependencies": {
