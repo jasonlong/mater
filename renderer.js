@@ -5,6 +5,7 @@
 
 // Get menubar instance from main.js
 const {mb} = require('electron').remote.getGlobal('sharedObject')
+const {ipcRenderer} = require('electron')
 const path = require('path')
 const Timer = require('tiny-timer')
 
@@ -14,6 +15,7 @@ const stopBtn = document.querySelector('.js-stop-btn')
 const slider = document.querySelector('.js-slider')
 
 // Sounds
+let soundEnabled = true
 const soundWindup = new Audio(path.join(__dirname, '/wav/windup.wav'))
 const soundClick = new Audio(path.join(__dirname, '/wav/click.wav'))
 const soundDing = new Audio(path.join(__dirname, '/wav/ding.wav'))
@@ -38,7 +40,9 @@ const getCurrentSliderWidth = () => state === 'breaking' ? 100 : 500
 
 const playSound = sound => {
   sound.currentTime = 0
-  sound.play()
+  if (soundEnabled) {
+    sound.play()
+  }
 }
 
 // State handling
@@ -120,4 +124,8 @@ timer.on('done', () => {
       setTimeout(() => slider.classList.remove('is-resetting-work'), 1000)
     }
   }, 2000)
+})
+
+ipcRenderer.on('TOGGLE_SOUND', (event, data) => {
+  soundEnabled = data
 })
