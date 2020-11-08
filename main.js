@@ -38,7 +38,7 @@ mb.on('after-create-window', () => {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: 'Sound Toggle',
+      label: 'Sound',
       submenu: [
         {
           label: 'On',
