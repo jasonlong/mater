@@ -62,13 +62,13 @@ const setIcon = (currentMinute, currentState) => {
 
   switch (process.platform) {
     case 'darwin':
-      file = `${__dirname}/img/template/icon-${currentMinute}${breakSuffix}-Template.png`
+      file = path.join(__dirname, `img/template/icon-${currentMinute}${breakSuffix}-Template.png`)
       break
     case 'win32':
-      file = `${__dirname}/img/ico/icon-${currentMinute}${breakSuffix}.ico`
+      file = path.join(__dirname, `img/ico/icon-${currentMinute}${breakSuffix}.ico`)
       break
     default:
-      file = `${__dirname}/img/png/icon-${currentMinute}${breakSuffix}.png`
+      file = path.join(__dirname, `img/png/icon-${currentMinute}${breakSuffix}.png`)
   }
 
   mb.tray.setImage(file)

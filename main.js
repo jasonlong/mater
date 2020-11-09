@@ -1,11 +1,12 @@
 const {Menu} = require('electron')
 const platform = require('os').platform()
 const {menubar} = require('menubar')
+const path = require('path')
 
 // Toggle with cmd + alt + i
 require('electron-debug')({showDevTools: true})
 
-const initialIcon = `${__dirname}/img/png/blank.png`
+const initialIcon = path.join(__dirname, 'img/png/blank.png')
 
 const mb = menubar({
   preloadWindow: true,
@@ -34,7 +35,7 @@ mb.on('ready', () => {
 })
 
 mb.on('after-create-window', () => {
-  mb.window.loadURL(`file://${__dirname}/index.html`)
+  mb.window.loadURL(`file://${__dirname}/index.html`) // eslint-disable-line node/no-path-concat
 
   const contextMenu = Menu.buildFromTemplate([
     {
