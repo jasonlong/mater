@@ -3,9 +3,6 @@ const platform = require('os').platform()
 const {menubar} = require('menubar')
 const path = require('path')
 
-// Toggle with cmd + alt + i
-require('electron-debug')({showDevTools: true})
-
 const initialIcon = path.join(__dirname, 'img/png/blank.png')
 
 const mb = menubar({

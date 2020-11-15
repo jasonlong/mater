@@ -1,6 +1,6 @@
 {
   "name": "mater",
-  "version": "1.0.6",
+  "version": "1.0.7-canary.1",
   "description": "A Pomodoro menubar app",
   "main": "main.js",
   "scripts": {
@@ -37,7 +37,6 @@
   "devDependencies": {
     "devtron": "^1.4.0",
     "electron": "^10.1.5",
-    "electron-debug": "^3.1.0",
     "electron-osx-sign": "^0.5.0",
     "electron-packager": "^15.1.0",
     "npm-run-all": "^4.1.5",
