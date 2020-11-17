@@ -2,8 +2,6 @@
 
 [![GitHub release](https://img.shields.io/github/release/jasonlong/mater.svg)](https://github.com/jasonlong/mater/releases/latest)
 ![Node.js CI](https://github.com/jasonlong/mater/workflows/Node.js%20CI/badge.svg)
-[![dependencies Status](https://david-dm.org/jasonlong/mater/status.svg)](https://david-dm.org/jasonlong/mater)
-[![devDependencies Status](https://david-dm.org/jasonlong/mater/dev-status.svg)](https://david-dm.org/jasonlong/mater?type=dev)
 [![XO code style](https://img.shields.io/badge/code_style-XO-5ed9c7.svg)](https://github.com/xojs/xo)
 
 ![mater-sm](https://user-images.githubusercontent.com/6104/37107543-9627589a-2202-11e8-825b-c68b248610ce.gif)
