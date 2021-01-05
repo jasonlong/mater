@@ -84,6 +84,16 @@ setCurrentMinute(0)
 // Event handlers
 // =============================================================================
 
+document.addEventListener('keydown', event => {
+  switch (event.key) {
+    case 'Escape':
+      mb.hideWindow()
+      break
+    default:
+      break
+  }
+})
+
 startBtn.addEventListener('click', () => {
   playSound(soundWindup)
   timer.start(minToMs(workMinutes))
@@ -96,6 +106,10 @@ stopBtn.addEventListener('click', () => {
   playSound(soundClick)
   timer.stop()
   setState('stopped')
+})
+
+mb.on('after-hide', () => {
+  mb.app.hide()
 })
 
 timer.on('tick', ms => {
