@@ -1,5 +1,3 @@
-/* eslint-disable no-undef */
-
 'use strict'
 
 // DOM elements & variables
