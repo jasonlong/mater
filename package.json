@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/jasonlong/mater",
   "dependencies": {
-    "menubar": "^9.0.3",
+    "menubar": "^9.0.4",
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
