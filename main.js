@@ -1,7 +1,7 @@
 const {Menu} = require('electron')
 const platform = require('os').platform()
-const {menubar} = require('menubar')
 const path = require('path')
+const {menubar} = require('menubar')
 
 const initialIcon = path.join(__dirname, 'img/png/blank.png')
 

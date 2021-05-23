@@ -43,7 +43,7 @@
     "stylelint": "^13.13.1",
     "stylelint-config-standard": "^22.0.0",
     "stylelint-order": "^4.1.0",
-    "xo": "^0.39.1"
+    "xo": "^0.40.0"
   },
   "xo": {
     "global": [
@@ -51,6 +51,9 @@
       "document",
       "path"
     ],
+    "rules": {
+      "unicorn/prefer-module": 0
+    },
     "semicolon": false,
     "space": true
   }
