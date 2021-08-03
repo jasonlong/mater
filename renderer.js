@@ -57,6 +57,7 @@ const setState = newState => {
 setState('stopped')
 
 const setIcon = (currentMinute, currentState) => {
+  const process = require('process')
   let file = ''
   const breakSuffix = currentState === 'breaking' ? '-break' : ''
 
