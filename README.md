@@ -12,7 +12,7 @@ This is a minimal menubar Pomodoro app written in Electron. It simply runs a 25 
 
 There are binaries built for Mac, Windows, and Linux on the [releases page](https://github.com/jasonlong/mater/releases). 
 
-_Note: Curently, I'm not able to test the Windows and Linux builds, so please open an issue if you have any problems._
+_Note: Currently, I'm not able to test the Windows and Linux builds, so please open an issue if you have any problems._
 
 ### Contributions
 
