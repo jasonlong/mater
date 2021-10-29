@@ -4,6 +4,7 @@
     "stylelint-order"
   ],
   "rules": {
+    "alpha-value-notation": "number",    
     "at-rule-empty-line-before": [null, {
       "except": ["first-nested"]
     }],
