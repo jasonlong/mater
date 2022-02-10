@@ -52,7 +52,7 @@ mb.on('after-create-window', () => {
     },
     {
       label: 'Quit',
-      click: () => {
+      click() {
         mb.app.quit()
       }
     }
