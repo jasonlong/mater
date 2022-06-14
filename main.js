@@ -30,7 +30,7 @@ mb.on('ready', () => {
 })
 
 mb.on('after-create-window', () => {
-  mb.window.loadURL(`file://${__dirname}/index.html`) // eslint-disable-line node/no-path-concat
+  mb.window.loadURL(`file://${__dirname}/index.html`) // eslint-disable-line n/no-path-concat
 
   const contextMenu = Menu.buildFromTemplate([
     {
