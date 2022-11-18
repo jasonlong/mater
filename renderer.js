@@ -6,7 +6,7 @@
 // Get menubar instance from main.js
 const {mb} = require('electron').remote.getGlobal('sharedObject')
 const {ipcRenderer} = require('electron')
-const path = require('path')
+const path = require('node:path')
 const Timer = require('tiny-timer')
 
 const appContainer = document.querySelector('.js-app')
@@ -57,19 +57,24 @@ const setState = newState => {
 setState('stopped')
 
 const setIcon = (currentMinute, currentState) => {
-  const process = require('process')
+  const process = require('node:process')
   let file = ''
   const breakSuffix = currentState === 'breaking' ? '-break' : ''
 
   switch (process.platform) {
-    case 'darwin':
+    case 'darwin': {
       file = path.join(__dirname, `img/template/icon-${currentMinute}${breakSuffix}-Template.png`)
       break
-    case 'win32':
+    }
+
+    case 'win32': {
       file = path.join(__dirname, `img/ico/icon-${currentMinute}${breakSuffix}.ico`)
       break
-    default:
+    }
+
+    default: {
       file = path.join(__dirname, `img/png/icon-${currentMinute}${breakSuffix}.png`)
+    }
   }
 
   mb.tray.setImage(file)
@@ -87,11 +92,14 @@ setCurrentMinute(0)
 
 document.addEventListener('keydown', event => {
   switch (event.key) {
-    case 'Escape':
+    case 'Escape': {
       mb.hideWindow()
       break
-    default:
+    }
+
+    default: {
       break
+    }
   }
 })
 
