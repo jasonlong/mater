@@ -53,7 +53,8 @@
     ],
     "rules": {
       "comma-dangle": 0,
-      "unicorn/prefer-module": 0
+      "unicorn/prefer-module": 0,
+      "unicorn/prefer-node-protocol": 0
     },
     "semicolon": false,
     "space": true

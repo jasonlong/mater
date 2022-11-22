@@ -6,7 +6,7 @@
 // Get menubar instance from main.js
 const {mb} = require('electron').remote.getGlobal('sharedObject')
 const {ipcRenderer} = require('electron')
-const path = require('node:path')
+const path = require('path')
 const Timer = require('tiny-timer')
 
 const appContainer = document.querySelector('.js-app')
@@ -57,7 +57,7 @@ const setState = newState => {
 setState('stopped')
 
 const setIcon = (currentMinute, currentState) => {
-  const process = require('node:process')
+  const process = require('process')
   let file = ''
   const breakSuffix = currentState === 'breaking' ? '-break' : ''
 
