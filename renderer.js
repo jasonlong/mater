@@ -10,8 +10,8 @@ const path = require('path')
 const Timer = require('tiny-timer')
 
 const appContainer = document.querySelector('.js-app')
-const startBtn = document.querySelector('.js-start-btn')
-const stopBtn = document.querySelector('.js-stop-btn')
+const startButton = document.querySelector('.js-start-btn')
+const stopButton = document.querySelector('.js-stop-btn')
 const slider = document.querySelector('.js-slider')
 
 // Sounds
@@ -103,7 +103,7 @@ document.addEventListener('keydown', event => {
   }
 })
 
-startBtn.addEventListener('click', () => {
+startButton.addEventListener('click', () => {
   playSound(soundWindup)
   timer.start(minToMs(workMinutes))
   setState('working')
@@ -111,7 +111,7 @@ startBtn.addEventListener('click', () => {
   setTimeout(() => slider.classList.remove('is-resetting-work'), 1000)
 })
 
-stopBtn.addEventListener('click', () => {
+stopButton.addEventListener('click', () => {
   playSound(soundClick)
   timer.stop()
   setState('stopped')
