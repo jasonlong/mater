@@ -19,7 +19,7 @@ const mb = menubar({
 })
 
 // Make menubar accessible to the renderer
-global.sharedObject = {mb}
+globalThis.sharedObject = {mb}
 
 mb.on('ready', () => {
   console.log('app is ready')
