@@ -9,6 +9,7 @@
       "except": ["first-nested"]
     }],
     "at-rule-no-vendor-prefix": true,
+    "color-function-alias-notation": null,
     "color-named": "never",
     "declaration-empty-line-before": null,
     "declaration-no-important": true,
