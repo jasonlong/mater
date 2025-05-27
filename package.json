@@ -43,16 +43,11 @@
     "stylelint": "^16.19.1",
     "stylelint-config-standard": "^38.0.0",
     "stylelint-order": "^7.0.0",
-    "xo": "^0.60.0"
+    "xo": "^1.0.0"
   },
   "xo": {
-    "global": [
-      "Audio",
-      "document",
-      "path"
-    ],
     "rules": {
-      "comma-dangle": 0,
+      "@stylistic/comma-dangle": 0,
       "unicorn/prefer-module": 0,
       "unicorn/prefer-node-protocol": 0
     },

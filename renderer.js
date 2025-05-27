@@ -1,3 +1,4 @@
+/* global document, Audio */
 'use strict'
 
 // DOM elements & variables
