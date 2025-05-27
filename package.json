@@ -46,13 +46,8 @@
     "xo": "^1.0.0"
   },
   "xo": {
-    "global": [
-      "Audio",
-      "document",
-      "path"
-    ],
     "rules": {
-      "comma-dangle": 0,
+      "@stylistic/comma-dangle": 0,
       "unicorn/prefer-module": 0,
       "unicorn/prefer-node-protocol": 0
     },
