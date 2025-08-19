@@ -43,7 +43,7 @@
     "stylelint": "^16.23.1",
     "stylelint-config-standard": "^39.0.0",
     "stylelint-order": "^7.0.0",
-    "xo": "^1.2.1"
+    "xo": "^1.2.2"
   },
   "xo": {
     "rules": {
