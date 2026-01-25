@@ -1,4 +1,4 @@
-const {Menu} = require('electron')
+const {Menu, ipcMain} = require('electron')
 const platform = require('os').platform()
 const path = require('path')
 const {menubar} = require('menubar')
@@ -8,18 +8,18 @@ const initialIcon = path.join(__dirname, 'img/png/blank.png')
 const mb = menubar({
   preloadWindow: true,
   icon: initialIcon,
+  index: `file://${__dirname}/index.html`, // eslint-disable-line n/no-path-concat
   browserWindow: {
     width: 220,
     height: 206,
     webPreferences: {
-      nodeIntegration: true,
-      enableRemoteModule: true
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+      preload: path.join(__dirname, 'preload.js')
     }
   }
 })
-
-// Make menubar accessible to the renderer
-globalThis.sharedObject = {mb}
 
 mb.on('ready', () => {
   console.log('app is ready')
@@ -30,8 +30,6 @@ mb.on('ready', () => {
 })
 
 mb.on('after-create-window', () => {
-  mb.window.loadURL(`file://${__dirname}/index.html`) // eslint-disable-line n/no-path-concat
-
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Sound',
@@ -60,4 +58,20 @@ mb.on('after-create-window', () => {
   mb.tray.on('right-click', () => {
     mb.tray.popUpContextMenu(contextMenu)
   })
+})
+
+mb.on('after-hide', () => {
+  mb.app.hide()
+})
+
+ipcMain.on('SET_TRAY_ICON', (event, iconPath) => {
+  mb.tray.setImage(iconPath)
+})
+
+ipcMain.on('HIDE_WINDOW', () => {
+  mb.hideWindow()
+})
+
+ipcMain.on('SHOW_WINDOW', () => {
+  mb.showWindow()
 })

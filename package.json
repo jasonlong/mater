@@ -4,14 +4,16 @@
   "description": "A Pomodoro menubar app",
   "main": "main.js",
   "scripts": {
-    "start": "electron main.js",
-    "build": "run-s build:*",
+    "start": "npm run build:renderer && electron main.js",
+    "build:renderer": "esbuild renderer.src.js --bundle --outfile=renderer.js --platform=browser",
+    "build": "npm run build:renderer && run-s build:mac build:linux build:win",
     "build:mac": "electron-packager . Mater --platform=darwin --arch=x64 --overwrite --icon=mater",
     "build:linux": "electron-packager . Mater --platform=linux --arch=x64 --overwrite --icon=mater",
     "build:win": "electron-packager . Mater --platform=win32 --arch=x64 --overwrite --icon=mater",
     "lint:css": "stylelint \"*.css\"",
-    "lint:js": "xo",
-    "test": "run-s lint:*"
+    "lint:js": "xo --ignore renderer.js",
+    "test": "run-s lint:*",
+    "test:e2e": "playwright test"
   },
   "repository": {
     "type": "git",
@@ -35,10 +37,11 @@
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
-    "devtron": "^1.4.0",
+    "@electron/osx-sign": "^1.3.1",
+    "@playwright/test": "^1.50.1",
     "electron": "31.1.0",
-    "electron-osx-sign": "^0.6.0",
     "electron-packager": "^17.1.2",
+    "esbuild": "^0.24.2",
     "npm-run-all": "^4.1.5",
     "stylelint": "^17.0.0",
     "stylelint-config-standard": "^40.0.0",

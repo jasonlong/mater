@@ -2,6 +2,7 @@
 <html class="app js-app">
   <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <title>Mater</title>
     <link rel="stylesheet" href="main.css">
   </head>
@@ -28,5 +29,5 @@
     </p>
   </body>
 
-  <script>require('./renderer.js')</script>
+  <script src="renderer.js"></script>
 </html>
