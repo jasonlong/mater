@@ -3,7 +3,7 @@ name: Node.js CI
 on: [push, pull_request]
 
 jobs:
-  lint:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,4 +17,8 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run lint
+      - name: Run linting
+        run: npm run lint
+
+      - name: Run e2e tests
+        run: xvfb-run --auto-servernum npm run test:e2e
