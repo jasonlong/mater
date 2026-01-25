@@ -1,10 +1,10 @@
 /* global document, Audio */
 import Timer from 'tiny-timer'
 
-const appContainer = document.querySelector('.js-app')
-const startButton = document.querySelector('.js-start-btn')
-const stopButton = document.querySelector('.js-stop-btn')
-const slider = document.querySelector('.js-slider')
+const appContainer = document.querySelector('[data-app]')
+const startButton = document.querySelector('[data-action="start"]')
+const stopButton = document.querySelector('[data-action="stop"]')
+const slider = document.querySelector('[data-element="slider"]')
 
 // Sounds
 let soundEnabled = true

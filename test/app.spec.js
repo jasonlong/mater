@@ -30,10 +30,10 @@ test.describe('Timer Controls', () => {
     const window = await electronApp.firstWindow()
     await window.waitForLoadState('domcontentloaded')
 
-    const startButton = window.locator('.js-start-btn')
+    const startButton = window.locator('[data-action="start"]')
     await startButton.click()
 
-    const appContainer = window.locator('.js-app')
+    const appContainer = window.locator('[data-app]')
     await expect(appContainer).toHaveClass(/is-working/)
   })
 
@@ -42,14 +42,14 @@ test.describe('Timer Controls', () => {
     await window.waitForLoadState('domcontentloaded')
 
     // Start first
-    const startButton = window.locator('.js-start-btn')
+    const startButton = window.locator('[data-action="start"]')
     await startButton.click()
 
-    const appContainer = window.locator('.js-app')
+    const appContainer = window.locator('[data-app]')
     await expect(appContainer).toHaveClass(/is-working/)
 
     // Then stop
-    const stopButton = window.locator('.js-stop-btn')
+    const stopButton = window.locator('[data-action="stop"]')
     await stopButton.click()
 
     await expect(appContainer).toHaveClass(/is-stopped/)

@@ -92,10 +92,10 @@
   var tiny_timer_module_default = Timer;
 
   // renderer.src.js
-  var appContainer = document.querySelector(".js-app");
-  var startButton = document.querySelector(".js-start-btn");
-  var stopButton = document.querySelector(".js-stop-btn");
-  var slider = document.querySelector(".js-slider");
+  var appContainer = document.querySelector("[data-app]");
+  var startButton = document.querySelector('[data-action="start"]');
+  var stopButton = document.querySelector('[data-action="stop"]');
+  var slider = document.querySelector('[data-element="slider"]');
   var soundEnabled = true;
   var soundWindup = new Audio(`${globalThis.mater.appPath}/wav/windup.wav`);
   var soundClick = new Audio(`${globalThis.mater.appPath}/wav/click.wav`);
