@@ -2,17 +2,19 @@
   "name": "mater",
   "version": "1.0.9",
   "description": "A Pomodoro menubar app",
+  "type": "module",
   "main": "main.js",
   "scripts": {
-    "start": "npm run build:renderer && electron main.js",
-    "build:renderer": "esbuild renderer.src.js --bundle --outfile=renderer.js --platform=browser",
-    "build": "npm run build:renderer && run-s build:mac build:linux build:win",
-    "build:mac": "electron-packager . Mater --platform=darwin --arch=x64 --overwrite --icon=mater",
-    "build:linux": "electron-packager . Mater --platform=linux --arch=x64 --overwrite --icon=mater",
-    "build:win": "electron-packager . Mater --platform=win32 --arch=x64 --overwrite --icon=mater",
+    "dev": "npm run bundle && electron main.js",
+    "bundle": "esbuild renderer.src.js --bundle --outfile=renderer.js --platform=browser",
+    "package": "npm run bundle && run-s package:mac package:linux package:win",
+    "package:mac": "electron-packager . Mater --platform=darwin --arch=x64 --overwrite --icon=mater",
+    "package:linux": "electron-packager . Mater --platform=linux --arch=x64 --overwrite --icon=mater",
+    "package:win": "electron-packager . Mater --platform=win32 --arch=x64 --overwrite --icon=mater",
+    "lint": "run-s lint:js lint:css",
     "lint:css": "stylelint \"*.css\"",
     "lint:js": "xo --ignore renderer.js",
-    "test": "run-s lint:*",
+    "test": "run-s lint test:e2e",
     "test:e2e": "playwright test"
   },
   "repository": {
@@ -50,9 +52,7 @@
   },
   "xo": {
     "rules": {
-      "@stylistic/comma-dangle": 0,
-      "unicorn/prefer-module": 0,
-      "unicorn/prefer-node-protocol": 0
+      "@stylistic/comma-dangle": 0
     },
     "semicolon": false,
     "space": true

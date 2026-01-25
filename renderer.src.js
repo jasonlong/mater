@@ -1,10 +1,5 @@
 /* global document, Audio */
-'use strict'
-
-const Timer = require('tiny-timer')
-
-// DOM elements & variables
-// =============================================================================
+import Timer from 'tiny-timer'
 
 const appContainer = document.querySelector('.js-app')
 const startButton = document.querySelector('.js-start-btn')
@@ -22,17 +17,12 @@ let currentMinute = 0
 const workMinutes = 25
 const breakMinutes = 5
 
-// Timer stuff
 const timer = new Timer()
 
 // Utilities
-// =============================================================================
 const minToMs = min => min * 60 * 1000
-
 const msToMin = ms => ms / 60 / 1000
-
 const getCurrentMinutes = () => state === 'breaking' ? breakMinutes : workMinutes
-
 const getCurrentSliderWidth = () => state === 'breaking' ? 100 : 500
 
 const playSound = sound => {
@@ -43,8 +33,6 @@ const playSound = sound => {
 }
 
 // State handling
-// =============================================================================
-
 const setState = newState => {
   appContainer.classList.remove('is-stopped', 'is-working', 'is-breaking')
   appContainer.classList.add(`is-${newState}`)
@@ -53,24 +41,24 @@ const setState = newState => {
 
 setState('stopped')
 
-const setIcon = (currentMinute, currentState) => {
+const setIcon = (minute, currentState) => {
   const {platform, appPath} = globalThis.mater
-  let file = ''
   const breakSuffix = currentState === 'breaking' ? '-break' : ''
 
+  let file
   switch (platform) {
     case 'darwin': {
-      file = `${appPath}/img/template/icon-${currentMinute}${breakSuffix}-Template.png`
+      file = `${appPath}/img/template/icon-${minute}${breakSuffix}-Template.png`
       break
     }
 
     case 'win32': {
-      file = `${appPath}/img/ico/icon-${currentMinute}${breakSuffix}.ico`
+      file = `${appPath}/img/ico/icon-${minute}${breakSuffix}.ico`
       break
     }
 
     default: {
-      file = `${appPath}/img/png/icon-${currentMinute}${breakSuffix}.png`
+      file = `${appPath}/img/png/icon-${minute}${breakSuffix}.png`
     }
   }
 
@@ -85,18 +73,9 @@ const setCurrentMinute = ms => {
 setCurrentMinute(0)
 
 // Event handlers
-// =============================================================================
-
 document.addEventListener('keydown', event => {
-  switch (event.key) {
-    case 'Escape': {
-      globalThis.mater.hideWindow()
-      break
-    }
-
-    default: {
-      break
-    }
+  if (event.key === 'Escape') {
+    globalThis.mater.hideWindow()
   }
 })
 
@@ -117,7 +96,8 @@ stopButton.addEventListener('click', () => {
 timer.on('tick', ms => {
   const minutes = getCurrentMinutes()
   const sliderWidth = getCurrentSliderWidth()
-  slider.style.transform = 'translateX(-' + Math.ceil((sliderWidth * ms) / (minToMs(minutes))) + 'px)'
+  const offset = Math.ceil((sliderWidth * ms) / minToMs(minutes))
+  slider.style.transform = `translateX(-${offset}px)`
   setCurrentMinute(ms)
 })
 
