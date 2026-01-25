@@ -2,16 +2,25 @@
   "name": "mater",
   "version": "1.0.9",
   "description": "A Pomodoro menubar app",
+  "type": "module",
   "main": "main.js",
   "scripts": {
-    "start": "electron main.js",
-    "build": "run-s build:*",
-    "build:mac": "electron-packager . Mater --platform=darwin --arch=x64 --overwrite --icon=mater",
-    "build:linux": "electron-packager . Mater --platform=linux --arch=x64 --overwrite --icon=mater",
-    "build:win": "electron-packager . Mater --platform=win32 --arch=x64 --overwrite --icon=mater",
+    "start": "npm run bundle:dev && electron .",
+    "bundle": "node esbuild.config.js",
+    "bundle:dev": "node esbuild.config.js --dev",
+    "make": "npm run bundle && electron-forge make",
+    "make:mac": "npm run bundle && electron-forge make --platform darwin",
+    "make:linux": "npm run bundle && electron-forge make --platform linux",
+    "make:win": "npm run bundle && electron-forge make --platform win32",
+    "lint": "run-s lint:js lint:css",
     "lint:css": "stylelint \"*.css\"",
-    "lint:js": "xo",
-    "test": "run-s lint:*"
+    "lint:js": "xo --ignore renderer.js",
+    "test": "run-s lint test:e2e",
+    "test:e2e": "playwright test",
+    "version:get": "node scripts/version.js get",
+    "version:patch": "node scripts/version.js patch",
+    "version:minor": "node scripts/version.js minor",
+    "version:major": "node scripts/version.js major"
   },
   "repository": {
     "type": "git",
@@ -35,10 +44,13 @@
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
-    "devtron": "^1.4.0",
+    "@electron-forge/cli": "^7.6.0",
+    "@electron-forge/maker-dmg": "^7.6.0",
+    "@electron-forge/maker-squirrel": "^7.6.0",
+    "@electron-forge/maker-zip": "^7.6.0",
+    "@playwright/test": "^1.50.1",
     "electron": "31.1.0",
-    "electron-osx-sign": "^0.6.0",
-    "electron-packager": "^17.1.2",
+    "esbuild": "^0.24.2",
     "npm-run-all": "^4.1.5",
     "stylelint": "^17.0.0",
     "stylelint-config-standard": "^40.0.0",
@@ -47,9 +59,7 @@
   },
   "xo": {
     "rules": {
-      "@stylistic/comma-dangle": 0,
-      "unicorn/prefer-module": 0,
-      "unicorn/prefer-node-protocol": 0
+      "@stylistic/comma-dangle": 0
     },
     "semicolon": false,
     "space": true

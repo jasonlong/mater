@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html class="app js-app">
+<html class="app" data-app>
   <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <title>Mater</title>
     <link rel="stylesheet" href="main.css">
   </head>
-  <body class="container js-app-container">
+  <body class="container">
     <div class="ui-bg ui-bg-working"></div>
     <div class="ui-bg ui-bg-breaking"></div>
     <div class="todo"><!--todo--></div>
-    <div class="slider js-slider">
+    <div class="slider" data-element="slider">
       <span class="minute">0</span>
       <span class="minute">5</span>
       <span class="minute">10</span>
@@ -23,10 +24,10 @@
     <div class="marker">▲</div>
 
     <p class="controls">
-      <button type="button" class="btn start-btn js-start-btn">Start</button>
-      <button type="button" class="btn stop-btn js-stop-btn">Stop</button>
+      <button type="button" class="btn start-btn" data-action="start">Start</button>
+      <button type="button" class="btn stop-btn" data-action="stop">Stop</button>
     </p>
   </body>
 
-  <script>require('./renderer.js')</script>
+  <script src="renderer.js"></script>
 </html>
