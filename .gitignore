@@ -1,5 +1,6 @@
 .DS_Store
 node_modules
+out/
 Mater-darwin-x64
 Mater-linux-x64
 Mater-win32-x64
