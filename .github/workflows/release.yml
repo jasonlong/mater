@@ -136,6 +136,27 @@ jobs:
           tag_name: v${{ needs.version.outputs.version }}
           name: v${{ needs.version.outputs.version }}
           generate_release_notes: true
+          body: |
+            ## Installation
+
+            ### macOS
+            1. Download the `.dmg` file below
+            2. Open the DMG and drag Mater to Applications
+            3. **Important:** Before first launch, run this command in Terminal:
+               ```
+               xattr -cr /Applications/Mater.app
+               ```
+            4. Open Mater from Applications
+
+            This removes the quarantine flag that macOS adds to downloaded apps.
+
+            ### Windows
+            Download and run the `.exe` installer.
+
+            ### Linux
+            Download the `.zip` file and extract it.
+
+            ---
           files: |
             artifacts/**/*.dmg
             artifacts/**/*.zip

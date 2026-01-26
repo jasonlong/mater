@@ -10,9 +10,21 @@ This is a minimal menubar Pomodoro app written in Electron. It simply runs a 25 
 
 ### Installation
 
-There are binaries built for Mac, Windows, and Linux on the [releases page](https://github.com/jasonlong/mater/releases). 
+Binaries for Mac, Windows, and Linux are available on the [releases page](https://github.com/jasonlong/mater/releases).
 
-_Note: Currently, I'm not able to test the Windows and Linux builds, so please open an issue if you have any problems._
+#### macOS
+
+1. Download the `.dmg` from [Releases](https://github.com/jasonlong/mater/releases)
+2. Open the DMG and drag Mater to Applications
+3. **Important:** Before first launch, run this command in Terminal:
+   ```
+   xattr -cr /Applications/Mater.app
+   ```
+4. Open Mater from Applications
+
+This removes the quarantine flag that macOS adds to downloaded apps. Without this step, macOS will show a warning that the app is damaged.
+
+_Note: I'm not able to test the Windows and Linux builds, so please open an issue if you have any problems._
 
 ### Contributions
 
