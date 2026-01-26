@@ -14,7 +14,7 @@
     "make:win": "npm run bundle && electron-forge make --platform win32",
     "lint": "run-s lint:js lint:css",
     "lint:css": "stylelint \"*.css\"",
-    "lint:js": "xo --ignore renderer.js",
+    "lint:js": "biome check",
     "test": "run-s lint test:e2e",
     "test:e2e": "playwright test",
     "version:get": "node scripts/version.js get",
@@ -55,13 +55,6 @@
     "stylelint": "^17.0.0",
     "stylelint-config-standard": "^40.0.0",
     "stylelint-order": "^7.0.1",
-    "xo": "^1.2.3"
-  },
-  "xo": {
-    "rules": {
-      "@stylistic/comma-dangle": 0
-    },
-    "semicolon": false,
-    "space": true
+    "@biomejs/biome": "^2.3.13"
   }
 }

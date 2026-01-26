@@ -1,0 +1,31 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.13/schema.json",
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded",
+      "quoteStyle": "single",
+      "trailingCommas": "none"
+    }
+  },
+  "files": {
+    "includes": ["*.js", "scripts/**"]
+  },
+  "overrides": [
+    {
+      "includes": ["renderer.js"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
+    }
+  ]
+}
