@@ -3,7 +3,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
-import {fileURLToPath} from 'node:url'
+import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const rootDir = path.resolve(__dirname, '..')
@@ -14,15 +14,15 @@ function readPackage() {
 }
 
 function writePackage(pkg) {
-  fs.writeFileSync(packagePath, JSON.stringify(pkg, null, 2) + '\n')
+  fs.writeFileSync(packagePath, `${JSON.stringify(pkg, null, 2)}\n`)
 }
 
 function parseVersion(version) {
   const [major, minor, patch] = version.split('.').map(Number)
-  return {major, minor, patch}
+  return { major, minor, patch }
 }
 
-function formatVersion({major, minor, patch}) {
+function formatVersion({ major, minor, patch }) {
   return `${major}.${minor}.${patch}`
 }
 
@@ -31,7 +31,7 @@ function bumpVersion(version, type) {
 
   switch (type) {
     case 'major': {
-      return formatVersion({major: parsed.major + 1, minor: 0, patch: 0})
+      return formatVersion({ major: parsed.major + 1, minor: 0, patch: 0 })
     }
 
     case 'minor': {

@@ -1,8 +1,8 @@
-import {Menu, ipcMain} from 'electron'
-import {platform} from 'node:os'
+import { platform } from 'node:os'
 import path from 'node:path'
-import {fileURLToPath} from 'node:url'
-import {menubar} from 'menubar'
+import { fileURLToPath } from 'node:url'
+import { ipcMain, Menu } from 'electron'
+import { menubar } from 'menubar'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const currentPlatform = platform()

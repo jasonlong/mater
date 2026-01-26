@@ -20,12 +20,13 @@ const breakMinutes = 5
 const timer = new Timer()
 
 // Utilities
-const minToMs = min => min * 60 * 1000
-const msToMin = ms => ms / 60 / 1000
-const getCurrentMinutes = () => state === 'breaking' ? breakMinutes : workMinutes
-const getCurrentSliderWidth = () => state === 'breaking' ? 100 : 500
+const minToMs = (min) => min * 60 * 1000
+const msToMin = (ms) => ms / 60 / 1000
+const getCurrentMinutes = () =>
+  state === 'breaking' ? breakMinutes : workMinutes
+const getCurrentSliderWidth = () => (state === 'breaking' ? 100 : 500)
 
-const playSound = sound => {
+const playSound = (sound) => {
   sound.currentTime = 0
   if (soundEnabled) {
     sound.play()
@@ -33,7 +34,7 @@ const playSound = sound => {
 }
 
 // State handling
-const setState = newState => {
+const setState = (newState) => {
   appContainer.classList.remove('is-stopped', 'is-working', 'is-breaking')
   appContainer.classList.add(`is-${newState}`)
   state = newState
@@ -42,7 +43,7 @@ const setState = newState => {
 setState('stopped')
 
 const setIcon = (minute, currentState) => {
-  const {platform, appPath} = globalThis.mater
+  const { platform, appPath } = globalThis.mater
   const breakSuffix = currentState === 'breaking' ? '-break' : ''
 
   let file
@@ -65,7 +66,7 @@ const setIcon = (minute, currentState) => {
   globalThis.mater.setTrayIcon(file)
 }
 
-const setCurrentMinute = ms => {
+const setCurrentMinute = (ms) => {
   currentMinute = Math.ceil(msToMin(ms))
   setIcon(currentMinute, state)
 }
@@ -73,7 +74,7 @@ const setCurrentMinute = ms => {
 setCurrentMinute(0)
 
 // Event handlers
-document.addEventListener('keydown', event => {
+document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     globalThis.mater.hideWindow()
   }
@@ -93,7 +94,7 @@ stopButton.addEventListener('click', () => {
   setState('stopped')
 })
 
-timer.on('tick', ms => {
+timer.on('tick', (ms) => {
   const minutes = getCurrentMinutes()
   const sliderWidth = getCurrentSliderWidth()
   const offset = Math.ceil((sliderWidth * ms) / minToMs(minutes))
@@ -122,6 +123,6 @@ timer.on('done', () => {
   }, 2000)
 })
 
-globalThis.mater.onToggleSound(enabled => {
+globalThis.mater.onToggleSound((enabled) => {
   soundEnabled = enabled
 })
