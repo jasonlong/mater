@@ -49,7 +49,7 @@
     "@electron-forge/maker-dmg": "^7.6.0",
     "@electron-forge/maker-squirrel": "^7.6.0",
     "@electron-forge/maker-zip": "^7.6.0",
-    "@playwright/test": "^1.58.1",
+    "@playwright/test": "^1.58.2",
     "electron": "^40.0.0",
     "esbuild": "^0.27.3",
     "npm-run-all": "^4.1.5",
