@@ -1,4 +1,4 @@
-name: Node.js CI
+name: CI
 
 on: [push, pull_request]
 
@@ -8,29 +8,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
-      - run: npm ci
+      - run: bun install
 
       - name: Run linting
-        run: npm run lint
-
-  e2e:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Use Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - run: npm ci
-
-      - name: Run e2e tests
-        run: npm run test:e2e
+        run: bun run lint

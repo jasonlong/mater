@@ -19,17 +19,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Run linting
-        run: npm run lint
+        run: bun run lint
 
   version:
     needs: lint
@@ -45,10 +42,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Configure Git
         run: |
@@ -58,13 +53,20 @@ jobs:
       - name: Bump version
         id: version
         run: |
-          node scripts/version.js ${{ inputs.version_type }}
-          VERSION=$(node scripts/version.js get)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          bun -e "
+            const pkg = await Bun.file('package.json').json();
+            const [major, minor, patch] = pkg.version.split('.').map(Number);
+            const type = '${{ inputs.version_type }}';
+            if (type === 'major') pkg.version = \`\${major+1}.0.0\`;
+            else if (type === 'minor') pkg.version = \`\${major}.\${minor+1}.0\`;
+            else pkg.version = \`\${major}.\${minor}.\${patch+1}\`;
+            await Bun.write('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            console.log(pkg.version);
+          " | tail -1 | xargs -I{} echo "version={}" >> $GITHUB_OUTPUT
 
       - name: Commit and tag
         run: |
-          git add package.json package-lock.json
+          git add package.json
           git commit -m "Bump version to ${{ steps.version.outputs.version }}"
           git tag "v${{ steps.version.outputs.version }}"
           git push origin HEAD
@@ -76,11 +78,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            platform: darwin
-          - os: windows-latest
-            platform: win32
-          - os: ubuntu-latest
-            platform: linux
+            platform: macos
 
     runs-on: ${{ matrix.os }}
     permissions:
@@ -92,26 +90,20 @@ jobs:
         with:
           ref: v${{ needs.version.outputs.version }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Build
-        run: npm run make
+        run: bunx electrobun build --env=stable
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: mater-${{ matrix.platform }}-${{ github.run_id }}
-          path: |
-            out/make/**/*.dmg
-            out/make/**/*.zip
-            out/make/**/*.exe
+          path: artifacts/
           if-no-files-found: ignore
 
   release:
@@ -148,16 +140,7 @@ jobs:
                ```
             4. Open Mater from Applications
 
-            This removes the quarantine flag that macOS adds to downloaded apps.
-
-            ### Windows
-            Download and run the `.exe` installer.
-
-            ### Linux
-            Download the `.zip` file and extract it.
-
             ---
           files: |
             artifacts/**/*.dmg
-            artifacts/**/*.zip
-            artifacts/**/*.exe
+            artifacts/**/*.tar.zst
