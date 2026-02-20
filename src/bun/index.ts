@@ -1,16 +1,10 @@
-import { dlopen, FFIType } from "bun:ffi"
-import {
-  BrowserView,
-  BrowserWindow,
-  Tray,
-  Utils,
-  Screen,
-} from "electrobun/bun"
-import type { MaterRPC } from "./rpc"
+import { dlopen, FFIType } from 'bun:ffi'
+import { BrowserView, BrowserWindow, Screen, Tray, Utils } from 'electrobun/bun'
+import type { MaterRPC } from './rpc'
 
 const WINDOW_WIDTH = 240
 const WINDOW_HEIGHT = 226
-const isMac = process.platform === "darwin"
+const isMac = process.platform === 'darwin'
 
 // On macOS, use objc_msgSend to fix template flag after setImage().
 // Electrobun's setImage doesn't call [image setTemplate:YES], so the icon
@@ -19,19 +13,23 @@ let markTrayImageAsTemplate: (() => void) | null = null
 
 if (isMac) {
   // Bind objc_msgSend twice with different arg signatures
-  const objc = dlopen("/usr/lib/libobjc.A.dylib", {
+  const objc = dlopen('/usr/lib/libobjc.A.dylib', {
     objc_msgSend: { args: [FFIType.ptr, FFIType.ptr], returns: FFIType.ptr },
-    sel_registerName: { args: [FFIType.cstring], returns: FFIType.ptr },
+    sel_registerName: { args: [FFIType.cstring], returns: FFIType.ptr }
   })
   // Second binding with 3 args (for setTemplate: which takes a BOOL/ptr)
-  const objc3 = dlopen("/usr/lib/libobjc.A.dylib", {
-    objc_msgSend: { args: [FFIType.ptr, FFIType.ptr, FFIType.ptr], returns: FFIType.ptr },
+  const objc3 = dlopen('/usr/lib/libobjc.A.dylib', {
+    objc_msgSend: {
+      args: [FFIType.ptr, FFIType.ptr, FFIType.ptr],
+      returns: FFIType.ptr
+    }
   })
 
-  const sel = (name: string) => objc.symbols.sel_registerName(Buffer.from(`${name}\0`))
-  const selButton = sel("button")
-  const selImage = sel("image")
-  const selSetTemplate = sel("setTemplate:")
+  const sel = (name: string) =>
+    objc.symbols.sel_registerName(Buffer.from(`${name}\0`))
+  const selButton = sel('button')
+  const selImage = sel('image')
+  const selSetTemplate = sel('setTemplate:')
 
   markTrayImageAsTemplate = () => {
     const statusItemPtr = tray.ptr
@@ -41,25 +39,25 @@ if (isMac) {
     const image = objc.symbols.objc_msgSend(button, selImage)
     if (!image) return
     // Pass 1 (YES) as a pointer-sized value for the BOOL arg
-    objc3.symbols.objc_msgSend(image, selSetTemplate, 1 as any)
+    objc3.symbols.objc_msgSend(image, selSetTemplate, 1 as never)
   }
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: Electrobun's BrowserWindow generic requires RPC type which varies per instance
 let popupWindow: BrowserWindow<any> | null = null
-let soundEnabled = true
 
 const tray = new Tray({
   image: isMac
-    ? "views://img/template/icon-0-Template.png"
-    : process.platform === "win32"
-      ? "views://img/ico/icon-0.ico"
-      : "views://img/png/icon-0.png",
+    ? 'views://img/template/icon-0-Template.png'
+    : process.platform === 'win32'
+      ? 'views://img/ico/icon-0.ico'
+      : 'views://img/png/icon-0.png',
   template: isMac,
   width: 22,
-  height: 22,
+  height: 22
 })
 
-tray.on("tray-clicked", () => {
+tray.on('tray-clicked', () => {
   togglePopup()
 })
 
@@ -121,9 +119,9 @@ function createRPC() {
         quitApp: () => {
           tray.remove()
           Utils.quit()
-        },
-      },
-    },
+        }
+      }
+    }
   })
 }
 
@@ -132,16 +130,16 @@ function createPopupWindow() {
   const rpc = createRPC()
 
   popupWindow = new BrowserWindow({
-    title: "Mater",
-    url: "views://mainview/index.html",
+    title: 'Mater',
+    url: 'views://mainview/index.html',
     transparent: true,
     frame: {
       width: WINDOW_WIDTH,
       height: WINDOW_HEIGHT,
       x: pos.x,
-      y: pos.y,
+      y: pos.y
     },
-    titleBarStyle: "hidden",
+    titleBarStyle: 'hidden',
     rpc,
     styleMask: {
       Borderless: true,
@@ -149,15 +147,15 @@ function createPopupWindow() {
       Closable: false,
       Miniaturizable: false,
       Resizable: false,
-      FullSizeContentView: true,
-    },
+      FullSizeContentView: true
+    }
   })
 
   popupWindow.setAlwaysOnTop(true)
 
-  popupWindow.on("close", () => {
+  popupWindow.on('close', () => {
     popupWindow = null
   })
 }
 
-console.log("Mater is ready")
+console.log('Mater is ready')

@@ -96,29 +96,28 @@ body {
   width: 505px;
   height: 15px;
   margin-top: 5px;
-  background-image:
-    linear-gradient(
-      90deg,
-      #fff 0,
-      #fff 5%,
-      transparent 5%,
-      transparent 20%,
-      #fff 20%,
-      #fff 22%,
-      transparent 22%,
-      transparent 40%,
-      #fff 40%,
-      #fff 42%,
-      transparent 42%,
-      transparent 60%,
-      #fff 60%,
-      #fff 62%,
-      transparent 62%,
-      transparent 80%,
-      #fff 80%,
-      #fff 82%,
-      transparent 82%
-    );
+  background-image: linear-gradient(
+    90deg,
+    #fff 0,
+    #fff 5%,
+    transparent 5%,
+    transparent 20%,
+    #fff 20%,
+    #fff 22%,
+    transparent 22%,
+    transparent 40%,
+    #fff 40%,
+    #fff 42%,
+    transparent 42%,
+    transparent 60%,
+    #fff 60%,
+    #fff 62%,
+    transparent 62%,
+    transparent 80%,
+    #fff 80%,
+    #fff 82%,
+    transparent 82%
+  );
   background-repeat: repeat-x;
   background-size: 100px 15px;
 }
@@ -159,8 +158,8 @@ body {
   width: auto;
   padding: 0.2em 0.6em;
   font-size: 0.7rem;
-  opacity: 0.6;
   box-shadow: none;
+  opacity: 0.6;
 }
 
 .is-stopped .quit-btn:hover {
@@ -187,7 +186,9 @@ body {
   background-color: var(--white);
   border: 0;
   border-radius: 100px;
-  box-shadow: rgba(0 0 0 / 0.16) 0 3px 12px, rgba(0 0 0 / 0.23) 0 3px 10px;
+  box-shadow:
+    rgba(0 0 0 / 0.16) 0 3px 12px,
+    rgba(0 0 0 / 0.23) 0 3px 10px;
 }
 
 .is-working .btn {

@@ -1,6 +1,7 @@
-import type { ElectrobunRPCSchema } from "electrobun/bun"
+import type { ElectrobunRPCSchema } from 'electrobun/bun'
 
 export type MaterRPC = ElectrobunRPCSchema<{
+  // biome-ignore lint/complexity/noBannedTypes: Electrobun RPC schema requires empty object for unused requests
   requests: {}
   messages: {
     // View -> Bun
