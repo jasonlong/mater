@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" class="app" data-app>
+  <head>
+    <meta charset="UTF-8">
+    <title>Mater</title>
+    <link rel="stylesheet" href="main.css">
+  </head>
+  <body>
+    <div class="panel">
+      <div class="container">
+        <div class="ui-bg ui-bg-working"></div>
+        <div class="ui-bg ui-bg-breaking"></div>
+        <div class="todo"><!--todo--></div>
+        <div class="slider" data-element="slider">
+          <span class="minute">0</span>
+          <span class="minute">5</span>
+          <span class="minute">10</span>
+          <span class="minute">15</span>
+          <span class="minute">20</span>
+          <span class="minute">25</span>
+          <div class="ruler"></div>
+        </div>
+
+        <div class="groove"></div>
+        <div class="marker">&#9650;</div>
+
+        <p class="controls">
+          <button type="button" class="btn start-btn" data-action="start">Start</button>
+          <button type="button" class="btn stop-btn" data-action="stop">Stop</button>
+          <button type="button" class="btn quit-btn" data-action="quit">Quit</button>
+        </p>
+      </div>
+    </div>
+  </body>
+
+  <script src="index.js"></script>
+</html>

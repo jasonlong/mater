@@ -2,6 +2,7 @@
   --red: #f40c05;
   --green: #18c93b;
   --white: #fff;
+  --shadow-size: 10px;
 }
 
 .app {
@@ -12,6 +13,17 @@
   /* system font */
   font: caption; /* stylelint-disable-line font-family-no-missing-generic-family-keyword */
   color: var(--white);
+  background: transparent;
+}
+
+body {
+  margin: 0;
+  background: transparent;
+}
+
+.panel {
+  padding: var(--shadow-size);
+  padding-top: 0;
 }
 
 .container {
@@ -19,8 +31,10 @@
   display: grid;
   justify-items: center;
   justify-content: center;
-  height: 100vh;
-  margin: 0;
+  height: calc(100vh - var(--shadow-size));
+  overflow: hidden;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(0 0 0 / 0.3);
   grid-template-rows: 41px 58px 6px 36px 64px;
 }
 
@@ -82,29 +96,28 @@
   width: 505px;
   height: 15px;
   margin-top: 5px;
-  background-image:
-    linear-gradient(
-      90deg,
-      #fff 0,
-      #fff 5%,
-      transparent 5%,
-      transparent 20%,
-      #fff 20%,
-      #fff 22%,
-      transparent 22%,
-      transparent 40%,
-      #fff 40%,
-      #fff 42%,
-      transparent 42%,
-      transparent 60%,
-      #fff 60%,
-      #fff 62%,
-      transparent 62%,
-      transparent 80%,
-      #fff 80%,
-      #fff 82%,
-      transparent 82%
-    );
+  background-image: linear-gradient(
+    90deg,
+    #fff 0,
+    #fff 5%,
+    transparent 5%,
+    transparent 20%,
+    #fff 20%,
+    #fff 22%,
+    transparent 22%,
+    transparent 40%,
+    #fff 40%,
+    #fff 42%,
+    transparent 42%,
+    transparent 60%,
+    #fff 60%,
+    #fff 62%,
+    transparent 62%,
+    transparent 80%,
+    #fff 80%,
+    #fff 82%,
+    transparent 82%
+  );
   background-repeat: repeat-x;
   background-size: 100px 15px;
 }
@@ -133,6 +146,26 @@
   display: none;
 }
 
+.quit-btn {
+  display: none;
+}
+
+.is-stopped .quit-btn {
+  position: absolute;
+  right: var(--shadow-size);
+  bottom: var(--shadow-size);
+  display: block;
+  width: auto;
+  padding: 0.2em 0.6em;
+  font-size: 0.7rem;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+.is-stopped .quit-btn:hover {
+  opacity: 1;
+}
+
 .is-breaking .start-btn,
 .is-working .start-btn {
   display: none;
@@ -153,7 +186,9 @@
   background-color: var(--white);
   border: 0;
   border-radius: 100px;
-  box-shadow: rgba(0 0 0 / 0.16) 0 3px 12px, rgba(0 0 0 / 0.23) 0 3px 10px;
+  box-shadow:
+    rgba(0 0 0 / 0.16) 0 3px 12px,
+    rgba(0 0 0 / 0.23) 0 3px 10px;
 }
 
 .is-working .btn {

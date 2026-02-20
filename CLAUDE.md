@@ -4,35 +4,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Mater is a minimal Pomodoro timer menubar app built with Electron. It runs a 25-minute work timer followed by a 5-minute break, repeating until stopped.
+Mater is a minimal Pomodoro timer menubar app built with Electrobun. It runs a 25-minute work timer followed by a 5-minute break, repeating until stopped.
 
 ## Commands
 
-- `npm start` - Run the app in development mode
-- `npm test` - Run all linters (JS + CSS) and e2e tests
-- `npm run lint:js` - Run XO (ESLint-based) JavaScript linter
-- `npm run lint:css` - Run Stylelint CSS linter
-- `npm run bundle` - Bundle renderer.js (production, minified)
-- `npm run bundle:dev` - Bundle renderer.js (dev, with sourcemaps)
-- `npm run make` - Build installer for current platform (uses Electron Forge)
-- `npm run make:mac` / `make:linux` / `make:win` - Build for specific platform
+- `bun run dev` - Run the app in development mode (via `electrobun dev`)
+- `bun run build` - Build the app (via `electrobun build`)
+- `bun run start` - Build then run in dev mode
+- `bun run test` - Run all linters (JS + CSS)
+- `bun run lint:js` - Run Biome JavaScript/TypeScript linter
+- `bun run lint:css` - Run Stylelint CSS linter
 
 ## Architecture
 
-This is a standard Electron app with two processes:
+This is an Electrobun app with two processes:
 
-- **main.js** - Main process: creates the menubar using the `menubar` package, handles tray icon and context menu (sound toggle, quit)
-- **renderer.js** - Renderer process: manages timer logic using `tiny-timer`, handles UI state transitions (stopped/working/breaking), updates tray icons per minute
-- **index.html** - Single HTML file with the timer UI (sliding ruler visualization)
+- **src/bun/index.ts** - Main process (runs on Bun): creates tray icon, manages popup window positioning, handles context menu (sound toggle, quit), processes RPC calls from the renderer
+- **src/bun/rpc.ts** - Shared RPC type definitions (typed schema for bun <-> view communication)
+- **src/mainview/index.ts** - Renderer process (runs in WebView): manages timer logic using `tiny-timer`, handles UI state transitions (stopped/working/breaking), sends tray icon updates via RPC
+- **src/mainview/index.html** - Single HTML file with the timer UI (sliding ruler visualization)
+- **src/mainview/main.css** - Styles for the popup window
 
 ### Key Details
 
 - Timer icons are stored in `img/` with platform-specific formats: `template/` (macOS), `ico/` (Windows), `png/` (Linux)
 - Sound files are in `wav/` directory
-- Main-to-renderer communication uses Electron's `ipcRenderer` for sound toggle
-- Renderer accesses menubar instance via `globalThis.sharedObject` set in main process
+- Main-to-renderer communication uses Electrobun's typed RPC (`defineRPC`) instead of Electron's IPC
+- The popup window is manually positioned below the tray icon (no `menubar` package equivalent in Electrobun)
+- `electrobun.config.ts` defines build configuration, asset copying, and platform-specific settings
 
 ## Code Style
 
-- **JavaScript**: XO with no semicolons, 2-space indentation
+- **JavaScript/TypeScript**: Biome with no semicolons, 2-space indentation, single quotes
 - **CSS**: Stylelint with strict property ordering (see `.stylelintrc`)
