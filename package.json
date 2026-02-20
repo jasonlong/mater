@@ -34,7 +34,7 @@
   },
   "homepage": "https://github.com/jasonlong/mater",
   "dependencies": {
-    "electrobun": "latest",
+    "electrobun": "^1.13.1",
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
