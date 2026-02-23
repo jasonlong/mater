@@ -44,7 +44,7 @@
     "tiny-timer": "^1.6.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.1",
+    "@biomejs/biome": "^2.4.4",
     "@electron-forge/cli": "^7.6.0",
     "@electron-forge/maker-dmg": "^7.6.0",
     "@electron-forge/maker-squirrel": "^7.6.0",
