@@ -10,12 +10,12 @@
 		BB0000000000000000000001 /* MaterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000001 /* MaterApp.swift */; };
 		BB0000000000000000000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002 /* AppDelegate.swift */; };
 		BB0000000000000000000003 /* TimerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000003 /* TimerState.swift */; };
+		BB0000000000000000000008 /* WindupSoundGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000008 /* WindupSoundGenerator.swift */; };
 		BB0000000000000000000004 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000004 /* StatusItemController.swift */; };
 		BB0000000000000000000005 /* TimerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000005 /* TimerPanel.swift */; };
 		BB0000000000000000000006 /* TimerPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000006 /* TimerPanelView.swift */; };
 		BB0000000000000000000007 /* RulerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000007 /* RulerView.swift */; };
 		BB000000000000000000000C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000C /* Assets.xcassets */; };
-		BB0000000000000000000010 /* windup.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000010 /* windup.wav */; };
 		BB0000000000000000000011 /* click.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* click.wav */; };
 		BB0000000000000000000012 /* ding.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* ding.wav */; };
 		BB0000000000000000000020 /* TimerStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000020 /* TimerStateTests.swift */; };
@@ -35,6 +35,7 @@
 		AA0000000000000000000001 /* MaterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterApp.swift; sourceTree = "<group>"; };
 		AA0000000000000000000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA0000000000000000000003 /* TimerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerState.swift; sourceTree = "<group>"; };
+		AA0000000000000000000008 /* WindupSoundGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindupSoundGenerator.swift; sourceTree = "<group>"; };
 		AA0000000000000000000004 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		AA0000000000000000000005 /* TimerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerPanel.swift; sourceTree = "<group>"; };
 		AA0000000000000000000006 /* TimerPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerPanelView.swift; sourceTree = "<group>"; };
@@ -43,7 +44,6 @@
 		AA000000000000000000000D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA000000000000000000000E /* Mater.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mater.entitlements; sourceTree = "<group>"; };
 		AA000000000000000000000F /* Mater.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mater.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA0000000000000000000010 /* windup.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = windup.wav; sourceTree = "<group>"; };
 		AA0000000000000000000011 /* click.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click.wav; sourceTree = "<group>"; };
 		AA0000000000000000000012 /* ding.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ding.wav; sourceTree = "<group>"; };
 		AA0000000000000000000020 /* TimerStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerStateTests.swift; sourceTree = "<group>"; };
@@ -105,6 +105,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000003 /* TimerState.swift */,
+				AA0000000000000000000008 /* WindupSoundGenerator.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -130,7 +131,6 @@
 		CC0000000000000000000006 /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
-				AA0000000000000000000010 /* windup.wav */,
 				AA0000000000000000000011 /* click.wav */,
 				AA0000000000000000000012 /* ding.wav */,
 			);
@@ -234,7 +234,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB000000000000000000000C /* Assets.xcassets in Resources */,
-				BB0000000000000000000010 /* windup.wav in Resources */,
 				BB0000000000000000000011 /* click.wav in Resources */,
 				BB0000000000000000000012 /* ding.wav in Resources */,
 			);
@@ -250,6 +249,7 @@
 				BB0000000000000000000001 /* MaterApp.swift in Sources */,
 				BB0000000000000000000002 /* AppDelegate.swift in Sources */,
 				BB0000000000000000000003 /* TimerState.swift in Sources */,
+				BB0000000000000000000008 /* WindupSoundGenerator.swift in Sources */,
 				BB0000000000000000000004 /* StatusItemController.swift in Sources */,
 				BB0000000000000000000005 /* TimerPanel.swift in Sources */,
 				BB0000000000000000000006 /* TimerPanelView.swift in Sources */,

@@ -1,0 +1,116 @@
+import AVFoundation
+
+struct WindupSoundGenerator {
+    private static let sampleRate: Double = 44100
+    private static let clickDuration: Double = 0.012
+
+    static func generate(clickCount: Int, totalDuration: TimeInterval) -> AVAudioPlayer? {
+        guard clickCount > 0, totalDuration > 0 else { return nil }
+
+        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
+        let totalFrames = AVAudioFrameCount(totalDuration * sampleRate)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: totalFrames) else { return nil }
+        buffer.frameLength = totalFrames
+
+        guard let samples = buffer.floatChannelData?[0] else { return nil }
+        for i in 0..<Int(totalFrames) { samples[i] = 0 }
+
+        // Seeded random for reproducible output
+        var rng: UInt64 = 12345
+        func nextRandom() -> Float {
+            rng = rng &* 6364136223846793005 &+ 1442695040888963407
+            return Float(Int64(bitPattern: rng >> 33)) / Float(Int64.max >> 33)
+        }
+
+        let clickTimes = clickTimings(count: clickCount, totalDuration: totalDuration)
+        let clickFrames = Int(clickDuration * sampleRate)
+
+        for clickTime in clickTimes {
+            let startFrame = Int(clickTime * sampleRate)
+            for i in 0..<clickFrames {
+                let frame = startFrame + i
+                guard frame < Int(totalFrames) else { break }
+                let t = Double(i) / Double(clickFrames)
+
+                // Sharp noise burst for the initial impact (first 2ms)
+                let noiseEnvelope = Float(exp(-t * 25.0))
+                let noise = nextRandom() * noiseEnvelope * 0.3
+
+                // Metallic resonance ring (3000 Hz + 4500 Hz harmonic)
+                let ringEnvelope = Float(exp(-t * 6.0))
+                let ring1 = Float(sin(2.0 * .pi * 3000.0 * Double(i) / sampleRate))
+                let ring2 = Float(sin(2.0 * .pi * 4500.0 * Double(i) / sampleRate))
+                let ring = (ring1 * 0.3 + ring2 * 0.15) * ringEnvelope
+
+                samples[frame] += noise + ring
+            }
+        }
+
+        guard let data = bufferToWAVData(buffer) else { return nil }
+        return try? AVAudioPlayer(data: data)
+    }
+
+    private static func clickTimings(count: Int, totalDuration: TimeInterval) -> [TimeInterval] {
+        guard count > 1 else { return [0] }
+
+        // Match the ruler's quadratic ease-out: dense at start, sparse at end.
+        // Ease-out: position = 1 - (1-t)^2, so t = 1 - sqrt(1 - position)
+        var times: [TimeInterval] = []
+        for i in 0..<count {
+            let position = Double(i) / Double(count - 1)
+            let t = 1.0 - sqrt(1.0 - position)
+            times.append(t * (totalDuration - clickDuration))
+        }
+        return times
+    }
+
+    private static func bufferToWAVData(_ buffer: AVAudioPCMBuffer) -> Data? {
+        let channels = 1
+        let bitsPerSample = 16
+        let bytesPerSample = bitsPerSample / 8
+        let frameCount = Int(buffer.frameLength)
+        let dataSize = frameCount * channels * bytesPerSample
+
+        var data = Data()
+
+        data.append(contentsOf: "RIFF".utf8)
+        appendUInt32(&data, UInt32(36 + dataSize))
+        data.append(contentsOf: "WAVE".utf8)
+
+        data.append(contentsOf: "fmt ".utf8)
+        appendUInt32(&data, 16)
+        appendUInt16(&data, 1)
+        appendUInt16(&data, UInt16(channels))
+        appendUInt32(&data, UInt32(sampleRate))
+        appendUInt32(&data, UInt32(sampleRate * Double(channels * bytesPerSample)))
+        appendUInt16(&data, UInt16(channels * bytesPerSample))
+        appendUInt16(&data, UInt16(bitsPerSample))
+
+        data.append(contentsOf: "data".utf8)
+        appendUInt32(&data, UInt32(dataSize))
+
+        guard let samples = buffer.floatChannelData?[0] else { return nil }
+        for i in 0..<frameCount {
+            let clamped = max(-1.0, min(1.0, samples[i]))
+            let int16 = Int16(clamped * Float(Int16.max))
+            appendInt16(&data, int16)
+        }
+
+        return data
+    }
+
+    private static func appendUInt32(_ data: inout Data, _ value: UInt32) {
+        var v = value.littleEndian
+        data.append(Data(bytes: &v, count: 4))
+    }
+
+    private static func appendUInt16(_ data: inout Data, _ value: UInt16) {
+        var v = value.littleEndian
+        data.append(Data(bytes: &v, count: 2))
+    }
+
+    private static func appendInt16(_ data: inout Data, _ value: Int16) {
+        var v = value.littleEndian
+        data.append(Data(bytes: &v, count: 2))
+    }
+}

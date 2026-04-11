@@ -25,13 +25,16 @@ private let tickMarks = Canvas { context, size in
 
 struct RulerView: View {
     var timerState: TimerState
+    @State private var dragStartOffset: CGFloat = 0
 
     private let minuteLabels = [0, 5, 10, 15, 20, 25]
     private let sliderWidth: CGFloat = 600
 
     var body: some View {
-        TimelineView(.animation(paused: timerState.mode == .stopped && !timerState.isWinding)) { timeline in
-            let offset: CGFloat = if timerState.isWinding {
+        TimelineView(.animation(paused: timerState.mode == .stopped && !timerState.isWinding && !timerState.isDragging)) { timeline in
+            let offset: CGFloat = if timerState.isDragging {
+                -timerState.frozenSliderOffset
+            } else if timerState.isWinding {
                 -timerState.windingSliderOffset(at: timeline.date)
             } else if timerState.mode == .stopped {
                 -timerState.frozenSliderOffset
@@ -44,6 +47,22 @@ struct RulerView: View {
             }
         }
         .clipped()
+        .gesture(dragGesture)
+    }
+
+    private var dragGesture: some Gesture {
+        DragGesture(minimumDistance: 4)
+            .onChanged { value in
+                if !timerState.isDragging {
+                    timerState.dragBegan()
+                    dragStartOffset = timerState.frozenSliderOffset
+                }
+                let newOffset = dragStartOffset - value.translation.width
+                timerState.dragChanged(offset: newOffset)
+            }
+            .onEnded { _ in
+                timerState.dragEnded()
+            }
     }
 
     private func slider(offset: CGFloat) -> some View {
