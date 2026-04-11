@@ -20,6 +20,7 @@ final class TimerState {
     private(set) var frozenSliderOffset: CGFloat = 0
     private(set) var isDragging: Bool = false
     private(set) var dragMinute: Int = 0
+    private var dragMode: TimerMode = .working
 
     // Winding animation state
     private(set) var isWinding: Bool = false
@@ -38,7 +39,7 @@ final class TimerState {
 
     private static let workMinutes = 25
     private static let breakMinutes = 5
-    private static let windSpeed: CGFloat = 700
+    private static let windSpeed: CGFloat = 500
 
     init() {
         clickSound = Self.loadSound("click")
@@ -97,6 +98,7 @@ final class TimerState {
         cycleDuration = 0
 
         isDragging = true
+        dragMode = mode == .stopped ? .working : mode
         dragMinute = minuteFromOffset(frozenSliderOffset)
     }
 
@@ -104,12 +106,9 @@ final class TimerState {
         guard isDragging else { return }
         frozenSliderOffset = min(max(offset, 0), 500)
 
-        // Keep remainingSeconds and mode in sync for menubar icon
         let minutes = minuteFromOffset(frozenSliderOffset)
         remainingSeconds = minutes * 60
-        if frozenSliderOffset > 0 && mode == .stopped {
-            mode = .working
-        }
+        mode = frozenSliderOffset > 0 ? dragMode : .stopped
 
         if minutes != dragMinute {
             playTick()
@@ -122,7 +121,7 @@ final class TimerState {
         isDragging = false
         let minutes = minuteFromOffset(frozenSliderOffset)
         if minutes >= 1 {
-            startFromDrag(minutes: minutes)
+            startFromDrag(minutes: minutes, mode: dragMode)
         } else {
             mode = .stopped
             remainingSeconds = 0
@@ -134,9 +133,9 @@ final class TimerState {
         Int(round(offset / 20.0))
     }
 
-    private func startFromDrag(minutes: Int) {
+    private func startFromDrag(minutes: Int, mode newMode: TimerMode = .working) {
         let seconds = minutes * 60
-        mode = .working
+        mode = newMode
         // Set total duration to match so the ruler position is correct from the start
         cycleDuration = TimeInterval(seconds)
         cycleStartDate = Date()
@@ -154,7 +153,7 @@ final class TimerState {
     func start() {
         let targetOffset: CGFloat = 500
         let distance = abs(targetOffset - frozenSliderOffset)
-        let duration = max(Double(distance / Self.windSpeed), 0.1)
+        let duration = max(Double(distance / Self.windSpeed), 0.25)
 
         // One click per minute of winding distance
         let minutesWinding = Int(round(distance / 20.0)) // 20pt per minute
@@ -230,7 +229,7 @@ final class TimerState {
         let nextMinutes = nextMode == .breaking ? Self.breakMinutes : Self.workMinutes
         let targetOffset: CGFloat = nextMode == .breaking ? 100 : 500
         let distance = targetOffset
-        let duration = max(Double(distance / Self.windSpeed), 0.1)
+        let duration = max(Double(distance / Self.windSpeed), 0.25)
         let clickCount = max(nextMinutes, 1)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
