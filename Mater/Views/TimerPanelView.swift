@@ -46,22 +46,8 @@ struct TimerPanelView: View {
                     .padding(.top, 4)
                     .padding(.bottom, 10)
 
-                Button(timerState.mode == .stopped ? "Start" : "Stop") {
-                    if timerState.mode == .stopped {
-                        timerState.start()
-                    } else {
-                        timerState.stop()
-                    }
-                }
-                .buttonStyle(.plain)
-                .font(.system(size: 18, weight: .medium))
-                .foregroundColor(timerState.mode == .working ? workRed : buttonDark)
-                .frame(width: 95, height: 38)
-                .background(Color.white)
-                .clipShape(Capsule())
-                .shadow(color: Color.black.opacity(0.16), radius: 6, x: 0, y: 3)
-                .shadow(color: Color.black.opacity(0.23), radius: 5, x: 0, y: 3)
-                .focusable(false)
+                timerButton
+                    .focusable(false)
 
                 Spacer(minLength: 0)
             }
@@ -69,5 +55,37 @@ struct TimerPanelView: View {
         .animation(.linear(duration: 0.5), value: timerState.mode)
         .frame(width: 220, height: 206)
         .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    @ViewBuilder
+    private var timerButton: some View {
+        let label = timerState.mode == .stopped ? "Start" : "Stop"
+
+        Button(label) {
+            if timerState.mode == .stopped {
+                timerState.start()
+            } else {
+                timerState.stop()
+            }
+        }
+        .buttonStyle(.plain)
+        .font(.system(size: 18, weight: .medium))
+        .foregroundColor(timerState.mode == .working ? workRed : buttonDark)
+        .frame(width: 95, height: 38)
+        .modifier(GlassButtonModifier())
+        .colorScheme(.light)
+    }
+}
+
+private struct GlassButtonModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26, *) {
+            content
+                .glassEffect(.regular.interactive(), in: .capsule)
+        } else {
+            content
+                .background(.ultraThinMaterial, in: Capsule())
+                .shadow(color: Color.black.opacity(0.16), radius: 6, x: 0, y: 3)
+        }
     }
 }
