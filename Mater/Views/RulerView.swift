@@ -32,7 +32,7 @@ struct RulerView: View {
     var body: some View {
         TimelineView(.animation(paused: timerState.mode == .stopped)) { timeline in
             let offset = timerState.mode == .stopped
-                ? 0.0
+                ? -timerState.frozenSliderOffset
                 : -timerState.continuousSliderOffset(at: timeline.date)
 
             GeometryReader { _ in

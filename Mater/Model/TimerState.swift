@@ -1,4 +1,5 @@
 import AppKit
+import AVFoundation
 import Observation
 
 enum TimerMode: Equatable {
@@ -16,10 +17,11 @@ final class TimerState {
 
     private(set) var cycleStartDate: Date?
     private(set) var cycleDuration: TimeInterval = 0
+    private(set) var frozenSliderOffset: CGFloat = 0
 
     private var timer: Timer?
 
-    private let windupSound: NSSound?
+    private let windupPlayer: AVAudioPlayer?
     private let clickSound: NSSound?
     private let dingSound: NSSound?
 
@@ -27,7 +29,7 @@ final class TimerState {
     private static let breakMinutes = 5
 
     init() {
-        windupSound = Self.loadSound("windup")
+        windupPlayer = Self.loadPlayer("windup")
         clickSound = Self.loadSound("click")
         dingSound = Self.loadSound("ding")
     }
@@ -56,12 +58,16 @@ final class TimerState {
     }
 
     func start() {
-        playSound(windupSound)
+        // Wind proportional to how far the ruler needs to travel back
+        let windFraction = 1.0 - frozenSliderOffset / 500.0
+        playWindup(fraction: max(windFraction, 0.05))
         beginCycle(.working)
     }
 
     func stop() {
         playSound(clickSound)
+        windupPlayer?.stop()
+        frozenSliderOffset = continuousSliderOffset(at: Date())
         timer?.invalidate()
         timer = nil
         mode = .stopped
@@ -95,10 +101,14 @@ final class TimerState {
         playSound(dingSound)
         onCycleComplete?()
 
+        let nextMode: TimerMode = mode == .working ? .breaking : .working
+        let nextMinutes = nextMode == .breaking ? Self.breakMinutes : Self.workMinutes
+        let fraction = Double(nextMinutes) / Double(Self.workMinutes)
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
             guard let self else { return }
-            self.playSound(self.windupSound)
-            self.beginCycle(self.mode == .working ? .breaking : .working)
+            self.playWindup(fraction: fraction)
+            self.beginCycle(nextMode)
         }
     }
 
@@ -111,10 +121,23 @@ final class TimerState {
         startTimer()
     }
 
+    private func playWindup(fraction: Double) {
+        guard soundEnabled, let player = windupPlayer else { return }
+        player.stop()
+        // Start playback later into the sound for shorter cycles
+        player.currentTime = player.duration * (1 - fraction)
+        player.play()
+    }
+
     private func playSound(_ sound: NSSound?) {
         guard soundEnabled, let sound else { return }
         sound.stop()
         sound.play()
+    }
+
+    private static func loadPlayer(_ name: String) -> AVAudioPlayer? {
+        guard let path = Bundle.main.path(forResource: name, ofType: "wav") else { return nil }
+        return try? AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
     }
 
     private static func loadSound(_ name: String) -> NSSound? {

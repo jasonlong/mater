@@ -29,8 +29,16 @@ struct TimerPanelView: View {
 
                 Rectangle()
                     .fill(Color.black.opacity(0.5))
+                    .overlay(alignment: .top) {
+                        LinearGradient(
+                            colors: [Color.black.opacity(0.5), Color.clear],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                        .frame(height: 3)
+                    }
                     .frame(height: 6)
-                    .shadow(color: Color.black.opacity(0.5), radius: 2, x: 0, y: 2)
+                    .clipped()
 
                 Text("\u{25B2}")
                     .font(.system(size: 22))
