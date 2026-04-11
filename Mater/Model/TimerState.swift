@@ -14,6 +14,9 @@ final class TimerState {
     var soundEnabled: Bool = true
     var onCycleComplete: (() -> Void)?
 
+    private(set) var cycleStartDate: Date?
+    private(set) var cycleDuration: TimeInterval = 0
+
     private var timer: Timer?
 
     private let windupSound: NSSound?
@@ -44,20 +47,21 @@ final class TimerState {
         }
     }
 
-    var totalSeconds: Int {
-        mode == .breaking ? Self.breakMinutes * 60 : Self.workMinutes * 60
-    }
-
-    var sliderOffset: CGFloat {
-        let total = mode == .breaking ? Self.breakMinutes * 60 : Self.workMinutes * 60
-        guard total > 0 else { return 0 }
+    func continuousSliderOffset(at date: Date) -> CGFloat {
+        guard let startDate = cycleStartDate, cycleDuration > 0 else { return 0 }
+        let elapsed = date.timeIntervalSince(startDate)
+        let fraction = min(max(elapsed / cycleDuration, 0), 1)
         let sliderWidth: CGFloat = mode == .breaking ? 100 : 500
-        return sliderWidth * CGFloat(remainingSeconds) / CGFloat(total)
+        // Offset goes from sliderWidth (start) to 0 (end)
+        return sliderWidth * CGFloat(1 - fraction)
     }
 
     func start() {
         playSound(windupSound)
         mode = .working
+        let duration = TimeInterval(Self.workMinutes * 60)
+        cycleDuration = duration
+        cycleStartDate = Date()
         remainingSeconds = Self.workMinutes * 60
         startTimer()
     }
@@ -68,6 +72,8 @@ final class TimerState {
         timer = nil
         mode = .stopped
         remainingSeconds = 0
+        cycleStartDate = nil
+        cycleDuration = 0
     }
 
     private func startTimer() {
@@ -90,6 +96,8 @@ final class TimerState {
     private func cycleComplete() {
         timer?.invalidate()
         timer = nil
+        cycleStartDate = nil
+        cycleDuration = 0
         playSound(dingSound)
         onCycleComplete?()
 
@@ -98,9 +106,15 @@ final class TimerState {
             self.playSound(self.windupSound)
             if self.mode == .working {
                 self.mode = .breaking
+                let duration = TimeInterval(Self.breakMinutes * 60)
+                self.cycleDuration = duration
+                self.cycleStartDate = Date()
                 self.remainingSeconds = Self.breakMinutes * 60
             } else {
                 self.mode = .working
+                let duration = TimeInterval(Self.workMinutes * 60)
+                self.cycleDuration = duration
+                self.cycleStartDate = Date()
                 self.remainingSeconds = Self.workMinutes * 60
             }
             self.startTimer()
