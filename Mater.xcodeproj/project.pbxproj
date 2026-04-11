@@ -18,7 +18,18 @@
 		BB0000000000000000000010 /* windup.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000010 /* windup.wav */; };
 		BB0000000000000000000011 /* click.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* click.wav */; };
 		BB0000000000000000000012 /* ding.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* ding.wav */; };
+		BB0000000000000000000020 /* TimerStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000020 /* TimerStateTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DD0000000000000000000013 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD0000000000000000000002 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD0000000000000000000001;
+			remoteInfo = Mater;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		AA0000000000000000000001 /* MaterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterApp.swift; sourceTree = "<group>"; };
@@ -35,10 +46,19 @@
 		AA0000000000000000000010 /* windup.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = windup.wav; sourceTree = "<group>"; };
 		AA0000000000000000000011 /* click.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click.wav; sourceTree = "<group>"; };
 		AA0000000000000000000012 /* ding.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ding.wav; sourceTree = "<group>"; };
+		AA0000000000000000000020 /* TimerStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerStateTests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000021 /* MaterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MaterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		DD0000000000000000000005 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DD0000000000000000000012 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -52,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				CC0000000000000000000002 /* Mater */,
+				CC0000000000000000000009 /* MaterTests */,
 				CC0000000000000000000007 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -120,8 +141,17 @@
 			isa = PBXGroup;
 			children = (
 				AA000000000000000000000F /* Mater.app */,
+				AA0000000000000000000021 /* MaterTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		CC0000000000000000000009 /* MaterTests */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000020 /* TimerStateTests.swift */,
+			);
+			path = MaterTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -144,7 +174,32 @@
 			productReference = AA000000000000000000000F /* Mater.app */;
 			productType = "com.apple.product-type.application";
 		};
+		DD0000000000000000000010 /* MaterTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FF0000000000000000000003 /* Build configuration list for PBXNativeTarget "MaterTests" */;
+			buildPhases = (
+				DD0000000000000000000011 /* Sources */,
+				DD0000000000000000000012 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DD0000000000000000000014 /* PBXTargetDependency */,
+			);
+			name = MaterTests;
+			productName = MaterTests;
+			productReference = AA0000000000000000000021 /* MaterTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXTargetDependency section */
+		DD0000000000000000000014 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD0000000000000000000001 /* Mater */;
+			targetProxy = DD0000000000000000000013 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXProject section */
 		DD0000000000000000000002 /* Project object */ = {
@@ -168,6 +223,7 @@
 			projectRoot = "";
 			targets = (
 				DD0000000000000000000001 /* Mater */,
+				DD0000000000000000000010 /* MaterTests */,
 			);
 		};
 /* End PBXProject section */
@@ -198,6 +254,14 @@
 				BB0000000000000000000005 /* TimerPanel.swift in Sources */,
 				BB0000000000000000000006 /* TimerPanelView.swift in Sources */,
 				BB0000000000000000000007 /* RulerView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DD0000000000000000000011 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB0000000000000000000020 /* TimerStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -365,6 +429,36 @@
 			};
 			name = Release;
 		};
+		EE0000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jasonlong.mater.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Mater.app/Contents/MacOS/Mater";
+			};
+			name = Debug;
+		};
+		EE0000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.jasonlong.mater.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Mater.app/Contents/MacOS/Mater";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -382,6 +476,15 @@
 			buildConfigurations = (
 				EE0000000000000000000001 /* Debug */,
 				EE0000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FF0000000000000000000003 /* Build configuration list for PBXNativeTarget "MaterTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EE0000000000000000000005 /* Debug */,
+				EE0000000000000000000006 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

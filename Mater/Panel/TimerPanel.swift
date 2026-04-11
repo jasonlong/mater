@@ -29,12 +29,4 @@ final class TimerPanel: NSPanel {
     override func cancelOperation(_ sender: Any?) {
         close()
     }
-
-    override func keyDown(with event: NSEvent) {
-        if event.keyCode == 53 {
-            cancelOperation(nil)
-        } else {
-            super.keyDown(with: event)
-        }
-    }
 }

@@ -52,18 +52,12 @@ final class TimerState {
         let elapsed = date.timeIntervalSince(startDate)
         let fraction = min(max(elapsed / cycleDuration, 0), 1)
         let sliderWidth: CGFloat = mode == .breaking ? 100 : 500
-        // Offset goes from sliderWidth (start) to 0 (end)
         return sliderWidth * CGFloat(1 - fraction)
     }
 
     func start() {
         playSound(windupSound)
-        mode = .working
-        let duration = TimeInterval(Self.workMinutes * 60)
-        cycleDuration = duration
-        cycleStartDate = Date()
-        remainingSeconds = Self.workMinutes * 60
-        startTimer()
+        beginCycle(.working)
     }
 
     func stop() {
@@ -104,21 +98,17 @@ final class TimerState {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
             guard let self else { return }
             self.playSound(self.windupSound)
-            if self.mode == .working {
-                self.mode = .breaking
-                let duration = TimeInterval(Self.breakMinutes * 60)
-                self.cycleDuration = duration
-                self.cycleStartDate = Date()
-                self.remainingSeconds = Self.breakMinutes * 60
-            } else {
-                self.mode = .working
-                let duration = TimeInterval(Self.workMinutes * 60)
-                self.cycleDuration = duration
-                self.cycleStartDate = Date()
-                self.remainingSeconds = Self.workMinutes * 60
-            }
-            self.startTimer()
+            self.beginCycle(self.mode == .working ? .breaking : .working)
         }
+    }
+
+    private func beginCycle(_ newMode: TimerMode) {
+        let minutes = newMode == .breaking ? Self.breakMinutes : Self.workMinutes
+        mode = newMode
+        cycleDuration = TimeInterval(minutes * 60)
+        cycleStartDate = Date()
+        remainingSeconds = minutes * 60
+        startTimer()
     }
 
     private func playSound(_ sound: NSSound?) {

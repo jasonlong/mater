@@ -8,6 +8,7 @@ final class StatusItemController: NSObject {
     private let timerState: TimerState
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
+    private var iconCache: [String: NSImage] = [:]
 
     init(timerState: TimerState) {
         self.timerState = timerState
@@ -122,7 +123,13 @@ final class StatusItemController: NSObject {
 
     private func updateIcon() {
         guard let button = statusItem.button else { return }
-        button.image = Self.makeIcon(named: timerState.iconName)
+        let name = timerState.iconName
+        if let cached = iconCache[name] {
+            button.image = cached
+        } else if let icon = Self.makeIcon(named: name) {
+            iconCache[name] = icon
+            button.image = icon
+        }
     }
 
     private func setupOutsideClickMonitors() {
