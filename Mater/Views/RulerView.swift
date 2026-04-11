@@ -30,10 +30,14 @@ struct RulerView: View {
     private let sliderWidth: CGFloat = 600
 
     var body: some View {
-        TimelineView(.animation(paused: timerState.mode == .stopped)) { timeline in
-            let offset = timerState.mode == .stopped
-                ? -timerState.frozenSliderOffset
-                : -timerState.continuousSliderOffset(at: timeline.date)
+        TimelineView(.animation(paused: timerState.mode == .stopped && !timerState.isWinding)) { timeline in
+            let offset: CGFloat = if timerState.isWinding {
+                -timerState.windingSliderOffset(at: timeline.date)
+            } else if timerState.mode == .stopped {
+                -timerState.frozenSliderOffset
+            } else {
+                -timerState.continuousSliderOffset(at: timeline.date)
+            }
 
             GeometryReader { _ in
                 slider(offset: offset)

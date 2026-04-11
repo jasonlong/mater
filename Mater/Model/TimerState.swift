@@ -19,7 +19,15 @@ final class TimerState {
     private(set) var cycleDuration: TimeInterval = 0
     private(set) var frozenSliderOffset: CGFloat = 0
 
+    // Winding animation state
+    private(set) var isWinding: Bool = false
+    private(set) var windStartDate: Date?
+    private(set) var windDuration: TimeInterval = 0
+    private(set) var windFromOffset: CGFloat = 0
+    private(set) var windToOffset: CGFloat = 0
+
     private var timer: Timer?
+    private var windCheckTimer: Timer?
 
     private let windupPlayer: AVAudioPlayer?
     private let clickSound: NSSound?
@@ -27,6 +35,7 @@ final class TimerState {
 
     private static let workMinutes = 25
     private static let breakMinutes = 5
+    private static let windSpeed: CGFloat = 700 // points per second
 
     init() {
         windupPlayer = Self.loadPlayer("windup")
@@ -57,23 +66,64 @@ final class TimerState {
         return sliderWidth * CGFloat(1 - fraction)
     }
 
+    func windingSliderOffset(at date: Date) -> CGFloat {
+        guard let startDate = windStartDate, windDuration > 0 else { return windToOffset }
+        let elapsed = date.timeIntervalSince(startDate)
+        let t = min(max(elapsed / windDuration, 0), 1)
+        // Ease-out: decelerates as it reaches the target
+        let eased = 1 - (1 - t) * (1 - t)
+        return windFromOffset + (windToOffset - windFromOffset) * CGFloat(eased)
+    }
+
     func start() {
-        // Wind proportional to how far the ruler needs to travel back
-        let windFraction = 1.0 - frozenSliderOffset / 500.0
-        playWindup(fraction: max(windFraction, 0.05))
-        beginCycle(.working)
+        let targetOffset: CGFloat = 500
+        let distance = abs(targetOffset - frozenSliderOffset)
+        let duration = max(Double(distance / Self.windSpeed), 0.1)
+        let windFraction = 1.0 - Double(frozenSliderOffset) / 500.0
+
+        playWindup(fraction: max(windFraction, 0.15))
+
+        // Animate the ruler back to start position
+        isWinding = true
+        windFromOffset = frozenSliderOffset
+        windToOffset = targetOffset
+        windDuration = duration
+        windStartDate = Date()
+
+        // Begin the cycle after winding completes
+        windCheckTimer?.invalidate()
+        windCheckTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
+            Task { @MainActor in
+                self?.finishWindAndBeginCycle(.working)
+            }
+        }
     }
 
     func stop() {
         playSound(clickSound)
         windupPlayer?.stop()
-        frozenSliderOffset = continuousSliderOffset(at: Date())
+        windCheckTimer?.invalidate()
+        windCheckTimer = nil
+
+        if isWinding {
+            frozenSliderOffset = windingSliderOffset(at: Date())
+            isWinding = false
+        } else {
+            frozenSliderOffset = continuousSliderOffset(at: Date())
+        }
+
         timer?.invalidate()
         timer = nil
         mode = .stopped
         remainingSeconds = 0
         cycleStartDate = nil
         cycleDuration = 0
+    }
+
+    private func finishWindAndBeginCycle(_ newMode: TimerMode) {
+        isWinding = false
+        windStartDate = nil
+        beginCycle(newMode)
     }
 
     private func startTimer() {
@@ -103,12 +153,27 @@ final class TimerState {
 
         let nextMode: TimerMode = mode == .working ? .breaking : .working
         let nextMinutes = nextMode == .breaking ? Self.breakMinutes : Self.workMinutes
+        let targetOffset: CGFloat = nextMode == .breaking ? 100 : 500
         let fraction = Double(nextMinutes) / Double(Self.workMinutes)
+        let distance = targetOffset // winding from 0 to target
+        let duration = max(Double(distance / Self.windSpeed), 0.1)
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
             guard let self else { return }
             self.playWindup(fraction: fraction)
-            self.beginCycle(nextMode)
+
+            self.isWinding = true
+            self.windFromOffset = 0
+            self.windToOffset = targetOffset
+            self.windDuration = duration
+            self.windStartDate = Date()
+
+            self.windCheckTimer?.invalidate()
+            self.windCheckTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { [weak self] _ in
+                Task { @MainActor in
+                    self?.finishWindAndBeginCycle(nextMode)
+                }
+            }
         }
     }
 
@@ -118,13 +183,13 @@ final class TimerState {
         cycleDuration = TimeInterval(minutes * 60)
         cycleStartDate = Date()
         remainingSeconds = minutes * 60
+        frozenSliderOffset = 0
         startTimer()
     }
 
     private func playWindup(fraction: Double) {
         guard soundEnabled, let player = windupPlayer else { return }
         player.stop()
-        // Start playback later into the sound for shorter cycles
         player.currentTime = player.duration * (1 - fraction)
         player.play()
     }
