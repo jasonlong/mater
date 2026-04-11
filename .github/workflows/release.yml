@@ -3,143 +3,39 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      version_type:
-        description: 'Version bump type'
+      version:
+        description: 'Version number (e.g. 1.0.0)'
         required: true
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+        type: string
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run linting
-        run: npm run lint
-
-  version:
-    needs: lint
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-      version: ${{ steps.version.outputs.version }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Bump version
-        id: version
-        run: |
-          node scripts/version.js ${{ inputs.version_type }}
-          VERSION=$(node scripts/version.js get)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Commit and tag
-        run: |
-          git add package.json package-lock.json
-          git commit -m "Bump version to ${{ steps.version.outputs.version }}"
-          git tag "v${{ steps.version.outputs.version }}"
-          git push origin HEAD
-          git push origin "v${{ steps.version.outputs.version }}"
-
   build:
-    needs: version
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            platform: darwin
-          - os: windows-latest
-            platform: win32
-          - os: ubuntu-latest
-            platform: linux
-
-    runs-on: ${{ matrix.os }}
+    runs-on: macos-15
     permissions:
       contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.version.outputs.version }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
+      - name: Build release
+        run: xcodebuild -scheme Mater -configuration Release build -derivedDataPath build/DerivedData
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run make
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: mater-${{ matrix.platform }}-${{ github.run_id }}
-          path: |
-            out/make/**/*.dmg
-            out/make/**/*.zip
-            out/make/**/*.exe
-          if-no-files-found: ignore
-
-  release:
-    needs: [version, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-
-      - name: List artifacts
-        run: find artifacts -type f 2>/dev/null || echo "No artifacts directory"
+      - name: Create DMG
+        run: |
+          APP_PATH="build/DerivedData/Build/Products/Release/Mater.app"
+          DMG_PATH="Mater-${{ inputs.version }}.dmg"
+          hdiutil create -volname "Mater" -srcfolder "$APP_PATH" -ov -format UDZO "$DMG_PATH"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.version.outputs.version }}
-          name: v${{ needs.version.outputs.version }}
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
           generate_release_notes: true
           body: |
             ## Installation
 
-            ### macOS
             1. Download the `.dmg` file below
             2. Open the DMG and drag Mater to Applications
             3. **Important:** Before first launch, run this command in Terminal:
@@ -147,17 +43,4 @@ jobs:
                xattr -cr /Applications/Mater.app
                ```
             4. Open Mater from Applications
-
-            This removes the quarantine flag that macOS adds to downloaded apps.
-
-            ### Windows
-            Download and run the `.exe` installer.
-
-            ### Linux
-            Download the `.zip` file and extract it.
-
-            ---
-          files: |
-            artifacts/**/*.dmg
-            artifacts/**/*.zip
-            artifacts/**/*.exe
+          files: Mater-${{ inputs.version }}.dmg
