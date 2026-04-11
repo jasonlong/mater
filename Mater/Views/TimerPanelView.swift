@@ -56,7 +56,8 @@ struct TimerPanelView: View {
                 Text("\u{25B2}")
                     .font(.system(size: 22))
                     .foregroundColor(.white)
-                    .frame(height: 36)
+                    .padding(.top, 4)
+                    .padding(.bottom, 10)
 
                 // Button
                 Button(timerState.mode == .stopped ? "Start" : "Stop") {
@@ -75,7 +76,8 @@ struct TimerPanelView: View {
                 .shadow(color: Color.black.opacity(0.16), radius: 6, x: 0, y: 3)
                 .shadow(color: Color.black.opacity(0.23), radius: 5, x: 0, y: 3)
                 .focusable(false)
-                .frame(height: 64)
+
+                Spacer(minLength: 0)
             }
         }
         .animation(.linear(duration: 0.5), value: timerState.mode)
