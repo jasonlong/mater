@@ -35,7 +35,9 @@ struct RulerView: View {
                 ? 0.0
                 : -timerState.continuousSliderOffset(at: timeline.date)
 
-            slider(offset: offset)
+            GeometryReader { _ in
+                slider(offset: offset)
+            }
         }
         .clipped()
     }

@@ -171,7 +171,7 @@ final class StatusItemController: NSObject {
 
     private static func makeIcon(named name: String) -> NSImage? {
         let icon = NSImage(named: name)
-        icon?.size = NSSize(width: 22, height: 22)
+        icon?.size = NSSize(width: 20, height: 20)
         icon?.isTemplate = true
         return icon
     }
