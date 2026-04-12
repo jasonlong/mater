@@ -9,3 +9,5 @@ Mater-linux-x64.zip
 Mater-win32-x64.zip
 .claude
 test-results
+build/
+artifacts/
