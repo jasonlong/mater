@@ -112,7 +112,7 @@ final class StatusItemController: NSObject {
 
     private func observeIcon() {
         withObservationTracking {
-            _ = timerState.iconName
+            _ = timerState.iconChanged
         } onChange: { [weak self] in
             Task { @MainActor in
                 self?.updateIcon()

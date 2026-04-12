@@ -41,17 +41,15 @@ struct IconGenerator {
                 notchSize: notchSize, cornerRadius: cornerRadius
             )
 
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.monospacedDigitSystemFont(ofSize: fontSize, weight: .bold),
+                .foregroundColor: NSColor.black,
+            ]
+
             switch style {
             case .filled:
-                // Draw solid fill
                 NSColor.black.setFill()
                 framePath.fill()
-
-                // Punch out text using destinationOut compositing
-                let attrs: [NSAttributedString.Key: Any] = [
-                    .font: NSFont.monospacedDigitSystemFont(ofSize: fontSize, weight: .bold),
-                    .foregroundColor: NSColor.black,
-                ]
                 ctx.cgContext.setBlendMode(.destinationOut)
                 drawCenteredText(text, in: inset, attributes: attrs, yOffset: notchSize / 2)
                 ctx.cgContext.setBlendMode(.normal)
@@ -60,11 +58,6 @@ struct IconGenerator {
                 NSColor.black.setStroke()
                 framePath.lineWidth = strokeWidth
                 framePath.stroke()
-
-                let attrs: [NSAttributedString.Key: Any] = [
-                    .font: NSFont.monospacedDigitSystemFont(ofSize: fontSize, weight: .bold),
-                    .foregroundColor: NSColor.black,
-                ]
                 drawCenteredText(text, in: inset, attributes: attrs, yOffset: notchSize / 2)
             }
 
