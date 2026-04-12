@@ -290,6 +290,14 @@ final class TimerState {
         cycleDuration = 0
     }
 
+    func toggle() {
+        if mode == .stopped {
+            start()
+        } else {
+            stop()
+        }
+    }
+
     private func beginWindAnimation(
         from: CGFloat, to target: CGFloat, clickCount: Int,
         completion: @escaping @MainActor () -> Void

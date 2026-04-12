@@ -9,11 +9,13 @@ final class DebugState {
 #endif
 
 final class TimerPanel: NSPanel {
+    private let timerState: TimerState
     #if DEBUG
     private let debugState = DebugState()
     #endif
 
     init(timerState: TimerState, showSettings: @escaping () -> Void) {
+        self.timerState = timerState
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 220, height: 206),
             styleMask: [.nonactivatingPanel, .borderless],
@@ -45,13 +47,16 @@ final class TimerPanel: NSPanel {
         close()
     }
 
-    #if DEBUG
     override func keyDown(with event: NSEvent) {
-        if event.charactersIgnoringModifiers == "d" {
+        switch event.charactersIgnoringModifiers {
+        case " ":
+            timerState.toggle()
+        #if DEBUG
+        case "d":
             debugState.showTime.toggle()
-        } else {
+        #endif
+        default:
             super.keyDown(with: event)
         }
     }
-    #endif
 }

@@ -54,6 +54,7 @@ struct TimerPanelView: View {
                     .padding(.bottom, 10)
 
                 timerButton
+                    .animation(.linear(duration: 0.1), value: timerState.mode)
                     .focusable(false)
 
                 Spacer(minLength: 0)
@@ -95,23 +96,41 @@ struct TimerPanelView: View {
         #endif
     }
 
+    private var isPaused: Bool {
+        timerState.mode == .stopped && timerState.frozenSliderOffset > 0
+    }
+
     @ViewBuilder
     private var timerButton: some View {
-        let label = timerState.mode == .stopped ? "Start" : "Stop"
-
-        Button(label) {
-            if timerState.mode == .stopped {
-                timerState.start()
-            } else {
-                timerState.stop()
-            }
+        let label = if timerState.mode != .stopped {
+            "Stop"
+        } else if isPaused {
+            "Resume"
+        } else {
+            "Start"
         }
+
+        Button(label, action: timerState.toggle)
         .buttonStyle(.plain)
         .font(.system(size: 18, weight: .medium))
         .foregroundColor(timerState.mode == .working ? workRed : buttonDark)
         .frame(width: 95, height: 38)
         .modifier(GlassButtonModifier())
         .colorScheme(.light)
+        .overlay(alignment: .trailing) {
+            if isPaused {
+                Button(action: timerState.start) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .frame(width: 28, height: 38)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .focusable(false)
+                .offset(x: 34)
+            }
+        }
     }
 }
 
