@@ -40,12 +40,15 @@ final class TimerState {
     private let clickSound: NSSound?
     private let dingSound: NSSound?
     private var tickPlayer: AVAudioPlayer?
-    private var lastIconName: String = ""
 
     let preferences: AppPreferences
     private var workMinutes: Int { preferences.workMinutes }
     private var breakMinutes: Int { preferences.breakMinutes }
     private static let windSpeed: CGFloat = 500
+
+    private func minutes(for mode: TimerMode) -> Int {
+        mode == .breaking ? breakMinutes : workMinutes
+    }
     private var maxWorkOffset: CGFloat { CGFloat(workMinutes) * Self.pointsPerMinute }
 
     init(preferences: AppPreferences) {
@@ -54,8 +57,6 @@ final class TimerState {
         dingSound = Self.loadSound("ding")
         tickPlayer = WindupSoundGenerator.generate(clickCount: 1, totalDuration: 0.02)
     }
-
-    var maxMinutes: Int { preferences.workMinutes }
 
     var currentMinute: Int {
         Int(ceil(Double(remainingSeconds) / 60.0))
@@ -70,15 +71,6 @@ final class TimerState {
         case .breaking:
             return "icon-\(currentMinute)-break"
         }
-    }
-
-    var iconChanged: Bool {
-        let name = iconName
-        if name != lastIconName {
-            lastIconName = name
-            return true
-        }
-        return false
     }
 
     func continuousSliderOffset(at date: Date) -> CGFloat {
@@ -257,7 +249,7 @@ final class TimerState {
         onCycleComplete?()
 
         let nextMode: TimerMode = mode == .working ? .breaking : .working
-        let nextMinutes = nextMode == .breaking ? breakMinutes : workMinutes
+        let nextMinutes = minutes(for: nextMode)
         let targetOffset = CGFloat(nextMinutes) * Self.pointsPerMinute
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
@@ -270,7 +262,7 @@ final class TimerState {
     }
 
     private func beginCycle(_ newMode: TimerMode) {
-        let minutes = newMode == .breaking ? breakMinutes : workMinutes
+        let minutes = minutes(for: newMode)
         mode = newMode
         cycleDuration = TimeInterval(minutes * 60)
         cycleStartDate = Date()

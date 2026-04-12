@@ -74,7 +74,7 @@ struct WindupSoundGenerator {
         let frameCount = Int(buffer.frameLength)
         let dataSize = frameCount * channels * bytesPerSample
 
-        var data = Data()
+        var data = Data(capacity: 44 + dataSize)
 
         data.append(contentsOf: "RIFF".utf8)
         appendUInt32(&data, UInt32(36 + dataSize))

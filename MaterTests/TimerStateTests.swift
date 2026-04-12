@@ -20,7 +20,7 @@ private func makeTimerState(workMinutes: Int = 25, breakMinutes: Int = 5) -> Tim
 @MainActor
 private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     state.dragBegan()
-    state.dragChanged(offset: CGFloat(minutes * 20))
+    state.dragChanged(offset: CGFloat(minutes) * TimerState.pointsPerMinute)
     state.dragEnded()
 }
 
@@ -170,20 +170,6 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(prefs.soundEnabled == false)
     }
 
-    @Test func iconChangedTracksTransitions() {
-        let state = makeTimerState()
-        // First call should return true (initial → "icon-stopped")
-        #expect(state.iconChanged == true)
-        // Same state, no change
-        #expect(state.iconChanged == false)
-
-        startCycleViaDrag(state)
-        // Mode changed, icon should be different
-        #expect(state.iconChanged == true)
-        #expect(state.iconChanged == false)
-
-        state.stop()
-    }
 }
 
 // MARK: - Configurable Durations
@@ -219,17 +205,9 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         state.stop()
     }
 
-    @Test func maxMinutesReflectsPreferences() {
+    @Test func preferencesAccessible() {
         let state = makeTimerState(workMinutes: 45)
-        #expect(state.maxMinutes == 45)
-    }
-
-    @Test func changingPreferencesUpdatesMaxMinutes() {
-        let prefs = makePrefs()
-        let state = TimerState(preferences: prefs)
-        #expect(state.maxMinutes == 25)
-        prefs.workMinutes = 40
-        #expect(state.maxMinutes == 40)
+        #expect(state.preferences.workMinutes == 45)
     }
 }
 

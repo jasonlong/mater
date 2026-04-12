@@ -12,19 +12,18 @@ struct RulerView: View {
     @State private var dragStartOffset: CGFloat = 0
 
     private var maxMinutes: Int { timerState.preferences.workMinutes }
-    private var fullBlocks: Int { maxMinutes / 5 }
-    private var extraTicks: Int { maxMinutes % 5 }
     private var minuteLabels: [Int] { stride(from: 0, through: maxMinutes, by: 5).map { $0 } }
-    private var totalTickWidth: CGFloat { CGFloat(maxMinutes) * (blockWidth / 5) + 5 }
-    private var sliderWidth: CGFloat { CGFloat(maxMinutes) * (blockWidth / 5) + blockWidth }
+    private var totalTickWidth: CGFloat { CGFloat(maxMinutes) * tickSpacing + 5 }
+    private var sliderWidth: CGFloat { CGFloat(maxMinutes) * tickSpacing + blockWidth }
+    private var tickSpacing: CGFloat { blockWidth / 5 }
 
     var body: some View {
         // Read preferences outside TimelineView so changes trigger re-render
         let labels = minuteLabels
         let tickWidth = totalTickWidth
         let totalWidth = sliderWidth
-        let blocks = fullBlocks
-        let extra = extraTicks
+        let minutes = maxMinutes
+        let spacing = tickSpacing
 
         TimelineView(.animation(paused: timerState.mode == .stopped && !timerState.isWinding && !timerState.isDragging)) { timeline in
             let offset: CGFloat = if timerState.isDragging {
@@ -54,24 +53,11 @@ struct RulerView: View {
                         let tickHeight = size.height
                         let bigTickWidth: CGFloat = 3.0
                         let smallTickWidth: CGFloat = 2.0
-                        let tickSpacing = blockWidth / 5
 
-                        // Full 5-minute blocks
-                        for block in 0..<blocks {
-                            let blockX = CGFloat(block) * blockWidth
-                            for i in 0..<5 {
-                                let x = blockX + CGFloat(i) * tickSpacing
-                                let width = i == 0 ? bigTickWidth : smallTickWidth
-                                let rect = CGRect(x: x, y: 0, width: width, height: tickHeight)
-                                context.fill(Path(rect), with: .color(.white))
-                            }
-                        }
-
-                        // Partial block ticks (e.g. 3 extra minutes past the last full block)
-                        let partialX = CGFloat(blocks) * blockWidth
-                        for i in 0...extra {
-                            let x = partialX + CGFloat(i) * tickSpacing
-                            let width = i == 0 ? bigTickWidth : smallTickWidth
+                        for minute in 0...minutes {
+                            let x = CGFloat(minute) * spacing
+                            let isMajor = minute % 5 == 0
+                            let width = isMajor ? bigTickWidth : smallTickWidth
                             let rect = CGRect(x: x, y: 0, width: width, height: tickHeight)
                             context.fill(Path(rect), with: .color(.white))
                         }

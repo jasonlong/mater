@@ -9,6 +9,7 @@ final class StatusItemController: NSObject {
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
     private var iconCache: [String: NSImage] = [:]
+    private var lastIconName: String = ""
     private let showSettings: () -> Void
 
     init(timerState: TimerState, showSettings: @escaping () -> Void) {
@@ -92,21 +93,13 @@ final class StatusItemController: NSObject {
         showSettings()
     }
 
-    @objc private func enableSound() {
-        timerState.soundEnabled = true
-    }
-
-    @objc private func disableSound() {
-        timerState.soundEnabled = false
-    }
-
     @objc private func quit() {
         NSApp.terminate(nil)
     }
 
     private func observeIcon() {
         withObservationTracking {
-            _ = timerState.iconChanged
+            _ = timerState.iconName
         } onChange: { [weak self] in
             Task { @MainActor in
                 self?.updateIcon()
@@ -118,6 +111,8 @@ final class StatusItemController: NSObject {
     private func updateIcon() {
         guard let button = statusItem.button else { return }
         let name = timerState.iconName
+        guard name != lastIconName else { return }
+        lastIconName = name
         if let cached = iconCache[name] {
             button.image = cached
         } else if let icon = Self.makeIcon(named: name) {
