@@ -81,13 +81,21 @@ struct TimerPanelView: View {
 
 private struct GlassButtonModifier: ViewModifier {
     func body(content: Content) -> some View {
+        #if compiler(>=6.2)
         if #available(macOS 26, *) {
             content
                 .glassEffect(.regular.interactive(), in: .capsule)
         } else {
-            content
-                .background(.ultraThinMaterial, in: Capsule())
-                .shadow(color: Color.black.opacity(0.16), radius: 6, x: 0, y: 3)
+            fallbackStyle(content)
         }
+        #else
+        fallbackStyle(content)
+        #endif
+    }
+
+    private func fallbackStyle(_ content: Content) -> some View {
+        content
+            .background(.ultraThinMaterial, in: Capsule())
+            .shadow(color: Color.black.opacity(0.16), radius: 6, x: 0, y: 3)
     }
 }
