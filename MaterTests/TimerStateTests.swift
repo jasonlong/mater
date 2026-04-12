@@ -214,6 +214,32 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 }
 
+@Suite struct IconGeneratorTests {
+    @Test func filledIconProperties() {
+        let icon = IconGenerator.generate(text: "25", style: .filled)
+        #expect(icon.size == NSSize(width: 20, height: 20))
+        #expect(icon.isTemplate == true)
+    }
+
+    @Test func outlinedIconProperties() {
+        let icon = IconGenerator.generate(text: "3", style: .outlined)
+        #expect(icon.size == NSSize(width: 20, height: 20))
+        #expect(icon.isTemplate == true)
+    }
+
+    @Test func stoppedIcon() {
+        let icon = IconGenerator.generate(text: "×", style: .outlined)
+        #expect(icon.size == NSSize(width: 20, height: 20))
+        #expect(icon.isTemplate == true)
+    }
+
+    @Test func singleAndDoubleDigit() {
+        let single = IconGenerator.generate(text: "5", style: .filled)
+        let double = IconGenerator.generate(text: "25", style: .filled)
+        #expect(single.size == double.size)
+    }
+}
+
 @MainActor
 @Suite struct PanelOriginTests {
     @Test func centeredBelowButton() {
