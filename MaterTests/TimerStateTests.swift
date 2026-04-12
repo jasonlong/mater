@@ -3,8 +3,15 @@ import AppKit
 @testable import Mater
 
 @MainActor
-private func makeTimerState() -> TimerState {
-    let prefs = AppPreferences(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+private func makePrefs() -> AppPreferences {
+    AppPreferences(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+}
+
+@MainActor
+private func makeTimerState(workMinutes: Int = 25, breakMinutes: Int = 5) -> TimerState {
+    let prefs = makePrefs()
+    prefs.workMinutes = workMinutes
+    prefs.breakMinutes = breakMinutes
     let state = TimerState(preferences: prefs)
     state.soundEnabled = false
     return state
@@ -17,10 +24,48 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     state.dragEnded()
 }
 
+// MARK: - AppPreferences
+
+@MainActor
+@Suite struct AppPreferencesTests {
+    @Test func defaultValues() {
+        let prefs = makePrefs()
+        #expect(prefs.workMinutes == 25)
+        #expect(prefs.breakMinutes == 5)
+        #expect(prefs.soundEnabled == true)
+    }
+
+    @Test func persistsWorkMinutes() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let prefs = AppPreferences(defaults: defaults)
+        prefs.workMinutes = 30
+        let prefs2 = AppPreferences(defaults: defaults)
+        #expect(prefs2.workMinutes == 30)
+    }
+
+    @Test func persistsBreakMinutes() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let prefs = AppPreferences(defaults: defaults)
+        prefs.breakMinutes = 10
+        let prefs2 = AppPreferences(defaults: defaults)
+        #expect(prefs2.breakMinutes == 10)
+    }
+
+    @Test func persistsSoundEnabled() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let prefs = AppPreferences(defaults: defaults)
+        prefs.soundEnabled = false
+        let prefs2 = AppPreferences(defaults: defaults)
+        #expect(prefs2.soundEnabled == false)
+    }
+}
+
+// MARK: - TimerState
+
 @MainActor
 @Suite struct TimerStateTests {
     @Test func initialState() {
-        let prefs = AppPreferences(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+        let prefs = makePrefs()
         let state = TimerState(preferences: prefs)
         #expect(state.mode == .stopped)
         #expect(state.remainingSeconds == 0)
@@ -45,23 +90,18 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     @Test func startViaButtonWindsFirst() {
         let state = makeTimerState()
         state.start()
-
-        // start() triggers winding, not immediate cycle
         #expect(state.isWinding == true)
-        #expect(state.mode == .stopped) // mode unchanged until wind completes
-
+        #expect(state.mode == .stopped)
         state.stop()
     }
 
     @Test func startViaDragBeginsImmediately() {
         let state = makeTimerState()
         startCycleViaDrag(state)
-
         #expect(state.mode == .working)
         #expect(state.remainingSeconds == 1500)
         #expect(state.cycleDuration == 1500)
         #expect(state.cycleStartDate != nil)
-
         state.stop()
     }
 
@@ -69,10 +109,26 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         let state = makeTimerState()
         startCycleViaDrag(state)
         state.stop()
-
         #expect(state.mode == .stopped)
         #expect(state.remainingSeconds == 0)
         #expect(state.cycleStartDate == nil)
+    }
+
+    @Test func stopFreezesFrozenOffset() {
+        let state = makeTimerState()
+        startCycleViaDrag(state)
+        state.stop()
+        // Offset should be captured near the start position (just started, barely moved)
+        #expect(state.frozenSliderOffset >= 0)
+    }
+
+    @Test func stopDuringWindCapturesPosition() {
+        let state = makeTimerState()
+        state.start()
+        #expect(state.isWinding == true)
+        state.stop()
+        #expect(state.isWinding == false)
+        #expect(state.frozenSliderOffset >= 0)
     }
 
     @Test func continuousSliderOffsetWhenStopped() {
@@ -84,7 +140,6 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         let state = makeTimerState()
         startCycleViaDrag(state)
 
-        // 25 min cycle = 500pt slider width (20pt/min)
         let offset = state.continuousSliderOffset(at: state.cycleStartDate!)
         #expect(offset == 500)
 
@@ -100,22 +155,131 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     @Test func currentMinute() {
         let state = makeTimerState()
         #expect(state.currentMinute == 0)
-
         startCycleViaDrag(state)
         #expect(state.currentMinute == 25)
-
         state.stop()
         #expect(state.currentMinute == 0)
     }
 
-    @Test func soundToggle() {
-        let prefs = AppPreferences(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+    @Test func soundToggleWritesToPreferences() {
+        let prefs = makePrefs()
         let state = TimerState(preferences: prefs)
         #expect(state.soundEnabled == true)
         state.soundEnabled = false
         #expect(state.soundEnabled == false)
+        #expect(prefs.soundEnabled == false)
+    }
+
+    @Test func iconChangedTracksTransitions() {
+        let state = makeTimerState()
+        // First call should return true (initial → "icon-stopped")
+        #expect(state.iconChanged == true)
+        // Same state, no change
+        #expect(state.iconChanged == false)
+
+        startCycleViaDrag(state)
+        // Mode changed, icon should be different
+        #expect(state.iconChanged == true)
+        #expect(state.iconChanged == false)
+
+        state.stop()
     }
 }
+
+// MARK: - Configurable Durations
+
+@MainActor
+@Suite struct ConfigurableDurationTests {
+    @Test func customWorkMinutesAffectsDrag() {
+        let state = makeTimerState(workMinutes: 30)
+        startCycleViaDrag(state, minutes: 30)
+        #expect(state.remainingSeconds == 1800)
+        #expect(state.cycleDuration == 1800)
+        state.stop()
+    }
+
+    @Test func dragClampedToConfiguredMax() {
+        let state = makeTimerState(workMinutes: 15)
+        state.dragBegan()
+        state.dragChanged(offset: 999)
+        // Max offset = 15 * 20 = 300
+        #expect(state.frozenSliderOffset == 300)
+        state.dragEnded()
+        state.stop()
+    }
+
+    @Test func sliderOffsetScalesWithDuration() {
+        let state = makeTimerState(workMinutes: 10)
+        startCycleViaDrag(state, minutes: 10)
+
+        // 10 min = 200pt slider width
+        let offset = state.continuousSliderOffset(at: state.cycleStartDate!)
+        #expect(offset == 200)
+
+        state.stop()
+    }
+
+    @Test func maxMinutesReflectsPreferences() {
+        let state = makeTimerState(workMinutes: 45)
+        #expect(state.maxMinutes == 45)
+    }
+
+    @Test func changingPreferencesUpdatesMaxMinutes() {
+        let prefs = makePrefs()
+        let state = TimerState(preferences: prefs)
+        #expect(state.maxMinutes == 25)
+        prefs.workMinutes = 40
+        #expect(state.maxMinutes == 40)
+    }
+}
+
+// MARK: - Winding Animation
+
+@MainActor
+@Suite struct WindingTests {
+    @Test func windProgressAtBoundaries() {
+        let state = makeTimerState()
+        // When not winding, progress is 1 (complete)
+        #expect(state.windProgress(at: Date()) == 1)
+    }
+
+    @Test func windingSliderOffsetInterpolates() {
+        let state = makeTimerState()
+        state.start()
+        #expect(state.isWinding == true)
+
+        let startDate = state.windStartDate!
+        // At start: offset should be near windFromOffset (0)
+        let startOffset = state.windingSliderOffset(at: startDate)
+        #expect(startOffset == 0)
+
+        // At end: offset should be windToOffset (500)
+        let endDate = startDate.addingTimeInterval(state.windDuration)
+        let endOffset = state.windingSliderOffset(at: endDate)
+        #expect(endOffset == 500)
+
+        state.stop()
+    }
+
+    @Test func windDurationProportionalToDistance() {
+        let state = makeTimerState()
+        // From 0: full distance
+        state.start()
+        let fullDuration = state.windDuration
+        state.stop()
+
+        // From near the end: short distance — use drag to set frozen offset
+        startCycleViaDrag(state)
+        state.stop() // freezes near 500
+        state.start()
+        let shortDuration = state.windDuration
+        state.stop()
+
+        #expect(shortDuration < fullDuration)
+    }
+}
+
+// MARK: - Drag
 
 @MainActor
 @Suite struct DragTests {
@@ -125,7 +289,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         state.dragBegan()
         #expect(state.isDragging == true)
 
-        state.dragChanged(offset: 200) // 10 minutes
+        state.dragChanged(offset: 200)
         #expect(state.mode == .working)
         #expect(state.remainingSeconds == 600)
 
@@ -168,7 +332,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         state.dragBegan()
         #expect(state.isDragging == true)
         #expect(state.frozenSliderOffset > 0)
-        #expect(state.cycleStartDate == nil) // timer paused
+        #expect(state.cycleStartDate == nil)
 
         state.dragChanged(offset: 200)
         state.dragEnded()
@@ -179,16 +343,30 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         state.stop()
     }
 
+    @Test func dragWhileWindingCapturesPosition() {
+        let state = makeTimerState()
+        state.start()
+        #expect(state.isWinding == true)
+
+        state.dragBegan()
+        #expect(state.isWinding == false)
+        #expect(state.isDragging == true)
+
+        state.dragChanged(offset: 200)
+        state.dragEnded()
+        state.stop()
+    }
+
     @Test func dragUpdatesIconViaRemainingSeconds() {
         let state = makeTimerState()
 
         state.dragBegan()
-        state.dragChanged(offset: 300) // 15 minutes
+        state.dragChanged(offset: 300)
         #expect(state.remainingSeconds == 900)
         #expect(state.currentMinute == 15)
         #expect(state.iconName == "icon-15")
 
-        state.dragChanged(offset: 100) // 5 minutes
+        state.dragChanged(offset: 100)
         #expect(state.remainingSeconds == 300)
         #expect(state.currentMinute == 5)
         #expect(state.iconName == "icon-5")
@@ -210,6 +388,35 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         state.stop()
     }
 }
+
+// MARK: - WindupSoundGenerator
+
+@Suite struct WindupSoundGeneratorTests {
+    @Test func generatesValidAudio() {
+        let player = WindupSoundGenerator.generate(clickCount: 5, totalDuration: 0.5)
+        #expect(player != nil)
+        #expect(player!.duration > 0)
+    }
+
+    @Test func singleClick() {
+        let player = WindupSoundGenerator.generate(clickCount: 1, totalDuration: 0.05)
+        #expect(player != nil)
+    }
+
+    @Test func returnsNilForInvalidInput() {
+        #expect(WindupSoundGenerator.generate(clickCount: 0, totalDuration: 0.5) == nil)
+        #expect(WindupSoundGenerator.generate(clickCount: 5, totalDuration: 0) == nil)
+    }
+
+    @Test func durationMatchesRequest() {
+        let player = WindupSoundGenerator.generate(clickCount: 10, totalDuration: 1.0)!
+        // Duration should be approximately 1 second (within rounding)
+        #expect(player.duration >= 0.9)
+        #expect(player.duration <= 1.1)
+    }
+}
+
+// MARK: - IconGenerator
 
 @Suite struct IconGeneratorTests {
     @Test func filledIconProperties() {
@@ -236,6 +443,8 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(single.size == double.size)
     }
 }
+
+// MARK: - PanelOrigin
 
 @MainActor
 @Suite struct PanelOriginTests {
