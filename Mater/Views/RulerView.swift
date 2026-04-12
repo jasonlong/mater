@@ -1,6 +1,11 @@
 import SwiftUI
 
 private let blockWidth: CGFloat = 100
+private let rulerGradient = LinearGradient(
+    colors: [.white, Color(white: 0.88)],
+    startPoint: .top,
+    endPoint: .bottom
+)
 
 private let tickMarks = Canvas { context, size in
     let tickHeight = size.height
@@ -71,7 +76,8 @@ struct RulerView: View {
                 ForEach(minuteLabels, id: \.self) { minute in
                     Text("\(minute)")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundStyle(rulerGradient)
+                        .shadow(color: .black.opacity(0.35), radius: 0.5, x: 0, y: 1)
                         .frame(width: blockWidth, alignment: .center)
                 }
             }
@@ -79,6 +85,8 @@ struct RulerView: View {
 
             tickMarks
                 .frame(width: 505, height: 15)
+                .overlay(rulerGradient.blendMode(.sourceAtop))
+                .shadow(color: .black.opacity(0.35), radius: 0.5, x: 0, y: 1)
                 .padding(.top, 5)
         }
         .frame(width: sliderWidth)
