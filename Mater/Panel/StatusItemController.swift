@@ -76,23 +76,6 @@ final class StatusItemController: NSObject {
     private func buildContextMenu() -> NSMenu {
         let menu = NSMenu()
 
-        let soundItem = NSMenuItem(title: "Sound", action: nil, keyEquivalent: "")
-        let soundSubmenu = NSMenu()
-
-        let soundOnItem = NSMenuItem(title: "On", action: #selector(enableSound), keyEquivalent: "")
-        soundOnItem.target = self
-        soundOnItem.state = timerState.soundEnabled ? .on : .off
-
-        let soundOffItem = NSMenuItem(title: "Off", action: #selector(disableSound), keyEquivalent: "")
-        soundOffItem.target = self
-        soundOffItem.state = timerState.soundEnabled ? .off : .on
-
-        soundSubmenu.addItem(soundOnItem)
-        soundSubmenu.addItem(soundOffItem)
-        soundItem.submenu = soundSubmenu
-        menu.addItem(soundItem)
-        menu.addItem(.separator())
-
         let settingsItem = NSMenuItem(title: "Settings\u{2026}", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)

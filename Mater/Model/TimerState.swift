@@ -14,7 +14,10 @@ final class TimerState {
 
     private(set) var mode: TimerMode = .stopped
     private(set) var remainingSeconds: Int = 0
-    var soundEnabled: Bool = true
+    var soundEnabled: Bool {
+        get { preferences.soundEnabled }
+        set { preferences.soundEnabled = newValue }
+    }
     var onCycleComplete: (() -> Void)?
 
     private(set) var cycleStartDate: Date?

@@ -29,8 +29,12 @@ final class SettingsWindowController: NSWindowController {
 
     private static func makeWindow(contentViewController: NSViewController) -> NSWindow {
         let window = NSWindow(contentViewController: contentViewController)
-        window.title = "Mater Settings"
-        window.styleMask = [.titled, .closable]
+        window.title = "Settings"
+        window.styleMask = [.titled, .closable, .fullSizeContentView]
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.titlebarSeparatorStyle = .none
+        window.toolbarStyle = .preference
         window.isMovableByWindowBackground = true
         window.tabbingMode = .disallowed
         window.center()

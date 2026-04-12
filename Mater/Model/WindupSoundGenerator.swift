@@ -34,13 +34,12 @@ struct WindupSoundGenerator {
 
                 // Sharp noise burst for the initial impact (first 2ms)
                 let noiseEnvelope = Float(exp(-t * 25.0))
-                let noise = nextRandom() * noiseEnvelope * 0.3
+                let noise = nextRandom() * noiseEnvelope * 0.15
 
-                // Metallic resonance ring (3000 Hz + 4500 Hz harmonic)
                 let ringEnvelope = Float(exp(-t * 6.0))
                 let ring1 = Float(sin(2.0 * .pi * 3000.0 * Double(i) / sampleRate))
                 let ring2 = Float(sin(2.0 * .pi * 4500.0 * Double(i) / sampleRate))
-                let ring = (ring1 * 0.3 + ring2 * 0.15) * ringEnvelope
+                let ring = (ring1 * 0.15 + ring2 * 0.08) * ringEnvelope
 
                 samples[frame] += noise + ring
             }
