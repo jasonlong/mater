@@ -172,6 +172,69 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
 
 }
 
+// MARK: - Toggle and Resume
+
+@MainActor
+@Suite struct ToggleResumeTests {
+    @Test func toggleFromStoppedStarts() {
+        let state = makeTimerState()
+        state.toggle()
+        #expect(state.isWinding == true)
+        state.stop()
+    }
+
+    @Test func toggleWhileRunningStops() {
+        let state = makeTimerState()
+        startCycleViaDrag(state)
+        #expect(state.mode == .working)
+        state.toggle()
+        #expect(state.mode == .stopped)
+        #expect(state.frozenSliderOffset > 0)
+    }
+
+    @Test func toggleFromPausedResumes() {
+        let state = makeTimerState()
+        startCycleViaDrag(state)
+        state.stop()
+        let frozenOffset = state.frozenSliderOffset
+        #expect(frozenOffset > 0)
+
+        state.toggle()
+        // Should resume immediately, not wind
+        #expect(state.isWinding == false)
+        #expect(state.mode == .working)
+        #expect(state.cycleStartDate != nil)
+    }
+
+    @Test func resumeStartsFromFrozenPosition() {
+        let state = makeTimerState()
+        startCycleViaDrag(state, minutes: 15)
+        state.stop()
+        let frozenOffset = state.frozenSliderOffset
+
+        state.resume()
+        #expect(state.mode == .working)
+        // Duration should match the frozen position's minutes
+        let expectedMinutes = Int(round(frozenOffset / TimerState.pointsPerMinute))
+        #expect(state.remainingSeconds == expectedMinutes * 60)
+    }
+
+    @Test func resumeDoesNothingAtZero() {
+        let state = makeTimerState()
+        #expect(state.frozenSliderOffset == 0)
+        state.resume()
+        #expect(state.mode == .stopped)
+    }
+
+    @Test func startFromZeroWindsToMax() {
+        let state = makeTimerState()
+        #expect(state.frozenSliderOffset == 0)
+        state.start()
+        #expect(state.isWinding == true)
+        state.stop()
+    }
+}
+
 // MARK: - Configurable Durations
 
 @MainActor

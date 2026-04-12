@@ -292,10 +292,20 @@ final class TimerState {
 
     func toggle() {
         if mode == .stopped {
-            start()
+            if frozenSliderOffset > 0 {
+                resume()
+            } else {
+                start()
+            }
         } else {
             stop()
         }
+    }
+
+    func resume() {
+        let minutes = minuteFromOffset(frozenSliderOffset)
+        guard minutes >= 1 else { return }
+        startFromDrag(minutes: minutes, mode: .working)
     }
 
     private func beginWindAnimation(
