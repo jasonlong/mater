@@ -45,7 +45,8 @@ struct TimerPanelView: View {
 
                 Text("\u{25B2}")
                     .font(.system(size: 22))
-                    .foregroundColor(.white)
+                    .foregroundStyle(rulerGradient)
+                    .shadow(color: .black.opacity(0.35), radius: 0.5, x: 0, y: 1)
                     .padding(.top, 4)
                     .padding(.bottom, 10)
 

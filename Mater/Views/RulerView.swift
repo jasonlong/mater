@@ -1,7 +1,7 @@
 import SwiftUI
 
 private let blockWidth: CGFloat = 100
-private let rulerGradient = LinearGradient(
+let rulerGradient = LinearGradient(
     colors: [.white, Color(white: 0.88)],
     startPoint: .top,
     endPoint: .bottom
