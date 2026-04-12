@@ -9,11 +9,13 @@ final class StatusItemController: NSObject {
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
     private var iconCache: [String: NSImage] = [:]
+    private let showSettings: () -> Void
 
-    init(timerState: TimerState) {
+    init(timerState: TimerState, showSettings: @escaping () -> Void) {
         self.timerState = timerState
+        self.showSettings = showSettings
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        self.timerPanel = TimerPanel(timerState: timerState)
+        self.timerPanel = TimerPanel(timerState: timerState, showSettings: showSettings)
         super.init()
 
         if let button = statusItem.button {
@@ -91,11 +93,20 @@ final class StatusItemController: NSObject {
         menu.addItem(soundItem)
         menu.addItem(.separator())
 
+        let settingsItem = NSMenuItem(title: "Settings\u{2026}", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+        menu.addItem(.separator())
+
         let quitItem = NSMenuItem(title: "Quit Mater", action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
 
         return menu
+    }
+
+    @objc private func openSettings() {
+        showSettings()
     }
 
     @objc private func enableSound() {

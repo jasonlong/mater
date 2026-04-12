@@ -2,7 +2,14 @@ import Testing
 import AppKit
 @testable import Mater
 
-// Helper to start a cycle immediately via drag (bypasses winding animation)
+@MainActor
+private func makeTimerState() -> TimerState {
+    let prefs = AppPreferences(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+    let state = TimerState(preferences: prefs)
+    state.soundEnabled = false
+    return state
+}
+
 @MainActor
 private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     state.dragBegan()
@@ -13,7 +20,8 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
 @MainActor
 @Suite struct TimerStateTests {
     @Test func initialState() {
-        let state = TimerState()
+        let prefs = AppPreferences(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+        let state = TimerState(preferences: prefs)
         #expect(state.mode == .stopped)
         #expect(state.remainingSeconds == 0)
         #expect(state.soundEnabled == true)
@@ -23,21 +31,19 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func iconNameStopped() {
-        let state = TimerState()
+        let state = makeTimerState()
         #expect(state.iconName == "icon-stopped")
     }
 
     @Test func iconNameWorking() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
         startCycleViaDrag(state)
         #expect(state.iconName == "icon-25")
         state.stop()
     }
 
     @Test func startViaButtonWindsFirst() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
         state.start()
 
         // start() triggers winding, not immediate cycle
@@ -48,8 +54,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func startViaDragBeginsImmediately() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
         startCycleViaDrag(state)
 
         #expect(state.mode == .working)
@@ -61,8 +66,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func stopResetsState() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
         startCycleViaDrag(state)
         state.stop()
 
@@ -72,13 +76,12 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func continuousSliderOffsetWhenStopped() {
-        let state = TimerState()
+        let state = makeTimerState()
         #expect(state.continuousSliderOffset(at: Date()) == 0)
     }
 
     @Test func continuousSliderOffsetDerivedFromDuration() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
         startCycleViaDrag(state)
 
         // 25 min cycle = 500pt slider width (20pt/min)
@@ -95,8 +98,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func currentMinute() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
         #expect(state.currentMinute == 0)
 
         startCycleViaDrag(state)
@@ -107,7 +109,8 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func soundToggle() {
-        let state = TimerState()
+        let prefs = AppPreferences(defaults: UserDefaults(suiteName: UUID().uuidString)!)
+        let state = TimerState(preferences: prefs)
         #expect(state.soundEnabled == true)
         state.soundEnabled = false
         #expect(state.soundEnabled == false)
@@ -117,8 +120,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
 @MainActor
 @Suite struct DragTests {
     @Test func dragFromStoppedSetsWorkingMode() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
 
         state.dragBegan()
         #expect(state.isDragging == true)
@@ -135,8 +137,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func dragToZeroStops() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
 
         state.dragBegan()
         state.dragChanged(offset: 100)
@@ -148,8 +149,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func dragClampedToRange() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
 
         state.dragBegan()
         state.dragChanged(offset: 999)
@@ -162,8 +162,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func dragWhileRunningCapturesOffset() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
         startCycleViaDrag(state)
 
         state.dragBegan()
@@ -181,8 +180,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func dragUpdatesIconViaRemainingSeconds() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
 
         state.dragBegan()
         state.dragChanged(offset: 300) // 15 minutes
@@ -200,8 +198,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     }
 
     @Test func customDurationSliderWidth() {
-        let state = TimerState()
-        state.soundEnabled = false
+        let state = makeTimerState()
 
         state.dragBegan()
         state.dragChanged(offset: 200)

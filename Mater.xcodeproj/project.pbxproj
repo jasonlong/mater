@@ -12,6 +12,9 @@
 		BB0000000000000000000003 /* TimerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000003 /* TimerState.swift */; };
 		BB0000000000000000000008 /* WindupSoundGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000008 /* WindupSoundGenerator.swift */; };
 		BB0000000000000000000009 /* IconGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000009 /* IconGenerator.swift */; };
+		BB000000000000000000000A /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000A /* AppPreferences.swift */; };
+		BB000000000000000000000B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000B /* SettingsView.swift */; };
+		BB000000000000000000000D /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000D2 /* SettingsWindowController.swift */; };
 		BB0000000000000000000004 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000004 /* StatusItemController.swift */; };
 		BB0000000000000000000005 /* TimerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000005 /* TimerPanel.swift */; };
 		BB0000000000000000000006 /* TimerPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000006 /* TimerPanelView.swift */; };
@@ -38,6 +41,9 @@
 		AA0000000000000000000003 /* TimerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerState.swift; sourceTree = "<group>"; };
 		AA0000000000000000000008 /* WindupSoundGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindupSoundGenerator.swift; sourceTree = "<group>"; };
 		AA0000000000000000000009 /* IconGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconGenerator.swift; sourceTree = "<group>"; };
+		AA000000000000000000000A /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPreferences.swift; sourceTree = "<group>"; };
+		AA000000000000000000000B /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AA000000000000000000000D2 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		AA0000000000000000000004 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		AA0000000000000000000005 /* TimerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerPanel.swift; sourceTree = "<group>"; };
 		AA0000000000000000000006 /* TimerPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerPanelView.swift; sourceTree = "<group>"; };
@@ -109,6 +115,7 @@
 				AA0000000000000000000003 /* TimerState.swift */,
 				AA0000000000000000000008 /* WindupSoundGenerator.swift */,
 				AA0000000000000000000009 /* IconGenerator.swift */,
+				AA000000000000000000000A /* AppPreferences.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -118,6 +125,7 @@
 			children = (
 				AA0000000000000000000004 /* StatusItemController.swift */,
 				AA0000000000000000000005 /* TimerPanel.swift */,
+				AA000000000000000000000D2 /* SettingsWindowController.swift */,
 			);
 			path = Panel;
 			sourceTree = "<group>";
@@ -127,6 +135,7 @@
 			children = (
 				AA0000000000000000000006 /* TimerPanelView.swift */,
 				AA0000000000000000000007 /* RulerView.swift */,
+				AA000000000000000000000B /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -258,6 +267,9 @@
 				BB0000000000000000000005 /* TimerPanel.swift in Sources */,
 				BB0000000000000000000006 /* TimerPanelView.swift in Sources */,
 				BB0000000000000000000007 /* RulerView.swift in Sources */,
+				BB000000000000000000000A /* AppPreferences.swift in Sources */,
+				BB000000000000000000000B /* SettingsView.swift in Sources */,
+				BB000000000000000000000D /* SettingsWindowController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

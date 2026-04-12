@@ -39,16 +39,20 @@ final class TimerState {
     private var tickPlayer: AVAudioPlayer?
     private var lastIconName: String = ""
 
-    private static let workMinutes = 25
-    private static let breakMinutes = 5
+    let preferences: AppPreferences
+    private var workMinutes: Int { preferences.workMinutes }
+    private var breakMinutes: Int { preferences.breakMinutes }
     private static let windSpeed: CGFloat = 500
-    private static let maxWorkOffset = CGFloat(workMinutes) * pointsPerMinute
+    private var maxWorkOffset: CGFloat { CGFloat(workMinutes) * Self.pointsPerMinute }
 
-    init() {
+    init(preferences: AppPreferences) {
+        self.preferences = preferences
         clickSound = Self.loadSound("click")
         dingSound = Self.loadSound("ding")
         tickPlayer = WindupSoundGenerator.generate(clickCount: 1, totalDuration: 0.02)
     }
+
+    var maxMinutes: Int { preferences.workMinutes }
 
     var currentMinute: Int {
         Int(ceil(Double(remainingSeconds) / 60.0))
@@ -116,7 +120,7 @@ final class TimerState {
 
     func dragChanged(offset: CGFloat) {
         guard isDragging else { return }
-        frozenSliderOffset = min(max(offset, 0), Self.maxWorkOffset)
+        frozenSliderOffset = min(max(offset, 0), maxWorkOffset)
 
         let minutes = minuteFromOffset(frozenSliderOffset)
         remainingSeconds = minutes * 60
@@ -162,7 +166,7 @@ final class TimerState {
     }
 
     func start() {
-        let targetOffset = Self.maxWorkOffset
+        let targetOffset = maxWorkOffset
         let distance = abs(targetOffset - frozenSliderOffset)
         let clickCount = max(Int(round(distance / Self.pointsPerMinute)), 1)
         beginWindAnimation(from: frozenSliderOffset, to: targetOffset, clickCount: clickCount) { [weak self] in
@@ -250,7 +254,7 @@ final class TimerState {
         onCycleComplete?()
 
         let nextMode: TimerMode = mode == .working ? .breaking : .working
-        let nextMinutes = nextMode == .breaking ? Self.breakMinutes : Self.workMinutes
+        let nextMinutes = nextMode == .breaking ? breakMinutes : workMinutes
         let targetOffset = CGFloat(nextMinutes) * Self.pointsPerMinute
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
@@ -263,7 +267,7 @@ final class TimerState {
     }
 
     private func beginCycle(_ newMode: TimerMode) {
-        let minutes = newMode == .breaking ? Self.breakMinutes : Self.workMinutes
+        let minutes = newMode == .breaking ? breakMinutes : workMinutes
         mode = newMode
         cycleDuration = TimeInterval(minutes * 60)
         cycleStartDate = Date()

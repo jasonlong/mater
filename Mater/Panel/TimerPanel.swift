@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 final class TimerPanel: NSPanel {
-    init(timerState: TimerState) {
+    init(timerState: TimerState, showSettings: @escaping () -> Void) {
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 220, height: 206),
             styleMask: [.nonactivatingPanel, .borderless],
@@ -20,7 +20,7 @@ final class TimerPanel: NSPanel {
         backgroundColor = .clear
         hasShadow = true
 
-        let rootView = TimerPanelView(timerState: timerState)
+        let rootView = TimerPanelView(timerState: timerState, showSettings: showSettings)
         contentView = NSHostingView(rootView: rootView)
     }
 

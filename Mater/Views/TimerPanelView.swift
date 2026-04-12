@@ -11,6 +11,7 @@ private let breakGradient = LinearGradient(colors: [breakGreen, breakGreenDark],
 
 struct TimerPanelView: View {
     var timerState: TimerState
+    var showSettings: () -> Void = {}
 
     var body: some View {
         ZStack {
@@ -53,6 +54,16 @@ struct TimerPanelView: View {
 
                 Spacer(minLength: 0)
             }
+
+            Button(action: showSettings) {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.6))
+            }
+            .buttonStyle(.plain)
+            .focusable(false)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            .padding(8)
         }
         .animation(.linear(duration: timerState.windDuration > 0 ? timerState.windDuration : 0.2), value: timerState.mode)
         .frame(width: 220, height: 206)
