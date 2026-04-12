@@ -2,6 +2,14 @@ import Testing
 import AppKit
 @testable import Mater
 
+// Helper to start a cycle immediately via drag (bypasses winding animation)
+@MainActor
+private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
+    state.dragBegan()
+    state.dragChanged(offset: CGFloat(minutes * 20))
+    state.dragEnded()
+}
+
 @MainActor
 @Suite struct TimerStateTests {
     @Test func initialState() {
@@ -14,34 +22,35 @@ import AppKit
         #expect(state.frozenSliderOffset == 0)
     }
 
-    @Test func currentMinuteAtBoundaries() {
-        let state = TimerState()
-        state.soundEnabled = false
-        #expect(state.currentMinute == 0)
-
-        state.start()
-        #expect(state.currentMinute == 25)
-
-        state.stop()
-    }
-
     @Test func iconNameStopped() {
         let state = TimerState()
-        #expect(state.iconName == "icon-0")
+        #expect(state.iconName == "icon-stopped")
     }
 
     @Test func iconNameWorking() {
         let state = TimerState()
         state.soundEnabled = false
-        state.start()
+        startCycleViaDrag(state)
         #expect(state.iconName == "icon-25")
         state.stop()
     }
 
-    @Test func startSetsWorkingMode() {
+    @Test func startViaButtonWindsFirst() {
         let state = TimerState()
         state.soundEnabled = false
         state.start()
+
+        // start() triggers winding, not immediate cycle
+        #expect(state.isWinding == true)
+        #expect(state.mode == .stopped) // mode unchanged until wind completes
+
+        state.stop()
+    }
+
+    @Test func startViaDragBeginsImmediately() {
+        let state = TimerState()
+        state.soundEnabled = false
+        startCycleViaDrag(state)
 
         #expect(state.mode == .working)
         #expect(state.remainingSeconds == 1500)
@@ -51,17 +60,15 @@ import AppKit
         state.stop()
     }
 
-    @Test func stopFrozenOffset() {
+    @Test func stopResetsState() {
         let state = TimerState()
         state.soundEnabled = false
-        state.start()
+        startCycleViaDrag(state)
         state.stop()
 
         #expect(state.mode == .stopped)
         #expect(state.remainingSeconds == 0)
         #expect(state.cycleStartDate == nil)
-        // frozenSliderOffset captures where the ruler was
-        #expect(state.frozenSliderOffset >= 0)
     }
 
     @Test func continuousSliderOffsetWhenStopped() {
@@ -72,7 +79,7 @@ import AppKit
     @Test func continuousSliderOffsetDerivedFromDuration() {
         let state = TimerState()
         state.soundEnabled = false
-        state.start()
+        startCycleViaDrag(state)
 
         // 25 min cycle = 500pt slider width (20pt/min)
         let offset = state.continuousSliderOffset(at: state.cycleStartDate!)
@@ -85,6 +92,18 @@ import AppKit
         #expect(state.continuousSliderOffset(at: midDate) == 250)
 
         state.stop()
+    }
+
+    @Test func currentMinute() {
+        let state = TimerState()
+        state.soundEnabled = false
+        #expect(state.currentMinute == 0)
+
+        startCycleViaDrag(state)
+        #expect(state.currentMinute == 25)
+
+        state.stop()
+        #expect(state.currentMinute == 0)
     }
 
     @Test func soundToggle() {
@@ -106,7 +125,7 @@ import AppKit
 
         state.dragChanged(offset: 200) // 10 minutes
         #expect(state.mode == .working)
-        #expect(state.remainingSeconds == 600) // 10 * 60
+        #expect(state.remainingSeconds == 600)
 
         state.dragEnded()
         #expect(state.isDragging == false)
@@ -142,45 +161,19 @@ import AppKit
         state.dragEnded()
     }
 
-    @Test func dragPreservesBreakMode() {
-        let state = TimerState()
-        state.soundEnabled = false
-
-        // Simulate being in break mode by starting and using drag
-        // First, start a work cycle and immediately drag into break territory
-        state.start()
-        // Now simulate break mode by stopping and setting up
-        state.stop()
-
-        // We can't easily put it in break mode without the full cycle,
-        // but we can test the drag mode preservation logic:
-        // Start a work cycle, drag should keep .working
-        state.start()
-        state.dragBegan()
-        state.dragChanged(offset: 100) // drag to 5 min
-        #expect(state.mode == .working) // preserves work mode
-
-        state.dragEnded()
-        state.stop()
-    }
-
     @Test func dragWhileRunningCapturesOffset() {
         let state = TimerState()
         state.soundEnabled = false
-        state.start()
+        startCycleViaDrag(state)
 
-        // Drag while running should capture current position
         state.dragBegan()
         #expect(state.isDragging == true)
         #expect(state.frozenSliderOffset > 0)
-
-        // Timer should be paused
-        #expect(state.cycleStartDate == nil)
+        #expect(state.cycleStartDate == nil) // timer paused
 
         state.dragChanged(offset: 200)
         state.dragEnded()
 
-        // Should resume as a 10-minute cycle
         #expect(state.cycleDuration == 600)
         #expect(state.remainingSeconds == 600)
 
@@ -210,12 +203,10 @@ import AppKit
         let state = TimerState()
         state.soundEnabled = false
 
-        // Start a 10-minute cycle via drag
         state.dragBegan()
         state.dragChanged(offset: 200)
         state.dragEnded()
 
-        // Slider width should be 200pt (10min * 20pt/min), not 500
         let offset = state.continuousSliderOffset(at: state.cycleStartDate!)
         #expect(offset == 200)
 
