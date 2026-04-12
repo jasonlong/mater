@@ -30,38 +30,36 @@ struct RulerView: View {
             let offset = currentOffset(at: timeline.date)
 
             GeometryReader { _ in
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack(spacing: 0) {
-                        ForEach(labels, id: \.self) { minute in
-                            Text("\(minute)")
+                Canvas { context, size in
+                    let tickHeight: CGFloat = 15
+                    let bigTickWidth: CGFloat = 3.0
+                    let smallTickWidth: CGFloat = 2.0
+                    let margin: CGFloat = 20
+                    let labelY: CGFloat = 0
+                    let bottomPadding: CGFloat = 8
+                    let tickY: CGFloat = size.height - tickHeight - bottomPadding
+
+                    for minute in 0...minutes {
+                        let x = margin + CGFloat(minute) * spacing
+
+                        let isMajor = minute % 5 == 0
+                        let width = isMajor ? bigTickWidth : smallTickWidth
+                        let tickRect = CGRect(x: x, y: tickY, width: width, height: tickHeight)
+                        context.fill(Path(tickRect), with: .color(.white))
+
+                        if minute % 5 == 0 {
+                            let text = Text("\(minute)")
                                 .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(rulerGradient)
-                                .shadow(color: .black.opacity(0.35), radius: 0.5, x: 0, y: 1)
-                                .frame(width: blockWidth, alignment: .center)
+                            let resolved = context.resolve(text)
+                            let textSize = resolved.measure(in: CGSize(width: 100, height: 40))
+                            context.draw(resolved, at: CGPoint(x: x, y: labelY + textSize.height / 2))
                         }
                     }
-                    .offset(x: -blockWidth / 2)
-
-                    Canvas { context, size in
-                        let tickHeight = size.height
-                        let bigTickWidth: CGFloat = 3.0
-                        let smallTickWidth: CGFloat = 2.0
-
-                        for minute in 0...minutes {
-                            let x = CGFloat(minute) * spacing
-                            let isMajor = minute % 5 == 0
-                            let width = isMajor ? bigTickWidth : smallTickWidth
-                            let rect = CGRect(x: x, y: 0, width: width, height: tickHeight)
-                            context.fill(Path(rect), with: .color(.white))
-                        }
-                    }
-                    .frame(width: tickWidth, height: 15)
-                    .overlay(rulerGradient.blendMode(.sourceAtop))
-                    .shadow(color: .black.opacity(0.35), radius: 0.5, x: 0, y: 1)
-                    .padding(.top, 5)
                 }
-                .frame(width: totalWidth, alignment: .leading)
-                .offset(x: 109 + offset)
+                .foregroundStyle(rulerGradient)
+                .shadow(color: .black.opacity(0.35), radius: 0.5, x: 0, y: 1)
+                .frame(width: totalWidth + 40)
+                .offset(x: 89 + offset)
             }
         }
         .clipped()
