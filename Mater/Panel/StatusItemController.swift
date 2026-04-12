@@ -17,7 +17,7 @@ final class StatusItemController: NSObject {
         super.init()
 
         if let button = statusItem.button {
-            button.image = Self.makeIcon(named: "icon-0")
+            button.image = Self.makeIcon(named: "icon-stopped")
             button.action = #selector(handleClick)
             button.target = self
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -170,10 +170,16 @@ final class StatusItemController: NSObject {
     }
 
     private static func makeIcon(named name: String) -> NSImage? {
-        let icon = NSImage(named: name)
-        icon?.size = NSSize(width: 20, height: 20)
-        icon?.isTemplate = true
-        return icon
+        if name == "icon-stopped" {
+            return IconGenerator.generate(text: "×", style: .outlined)
+        }
+        if name.contains("-break") {
+            let minute = name.replacingOccurrences(of: "icon-", with: "")
+                .replacingOccurrences(of: "-break", with: "")
+            return IconGenerator.generate(text: minute, style: .outlined)
+        }
+        let minute = name.replacingOccurrences(of: "icon-", with: "")
+        return IconGenerator.generate(text: minute, style: .filled)
     }
 
     static func panelOrigin(buttonRect: CGRect, panelSize: CGSize) -> CGPoint {

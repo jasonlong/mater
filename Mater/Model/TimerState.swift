@@ -28,6 +28,8 @@ final class TimerState {
     private(set) var windDuration: TimeInterval = 0
     private(set) var windFromOffset: CGFloat = 0
     private(set) var windToOffset: CGFloat = 0
+    private(set) var colorTransitionFrom: TimerMode = .stopped
+    private(set) var colorTransitionTo: TimerMode = .stopped
 
     private var timer: Timer?
     private var windCheckTimer: Timer?
@@ -54,7 +56,7 @@ final class TimerState {
     var iconName: String {
         switch mode {
         case .stopped:
-            return "icon-0"
+            return "icon-stopped"
         case .working:
             return "icon-\(currentMinute)"
         case .breaking:
@@ -73,10 +75,15 @@ final class TimerState {
 
     func windingSliderOffset(at date: Date) -> CGFloat {
         guard let startDate = windStartDate, windDuration > 0 else { return windToOffset }
-        let elapsed = date.timeIntervalSince(startDate)
-        let t = min(max(elapsed / windDuration, 0), 1)
+        let t = windProgress(at: date)
         let eased = 1 - (1 - t) * (1 - t)
         return windFromOffset + (windToOffset - windFromOffset) * CGFloat(eased)
+    }
+
+    func windProgress(at date: Date) -> Double {
+        guard let startDate = windStartDate, windDuration > 0 else { return 1 }
+        let elapsed = date.timeIntervalSince(startDate)
+        return min(max(elapsed / windDuration, 0), 1)
     }
 
     func dragBegan() {
@@ -235,6 +242,10 @@ final class TimerState {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
             guard let self else { return }
             self.playWindup(clickCount: clickCount, duration: duration)
+
+            self.colorTransitionFrom = self.mode
+            self.colorTransitionTo = nextMode
+            self.mode = nextMode
 
             self.isWinding = true
             self.windFromOffset = 0

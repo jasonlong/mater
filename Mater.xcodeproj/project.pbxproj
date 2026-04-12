@@ -11,6 +11,7 @@
 		BB0000000000000000000002 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000002 /* AppDelegate.swift */; };
 		BB0000000000000000000003 /* TimerState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000003 /* TimerState.swift */; };
 		BB0000000000000000000008 /* WindupSoundGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000008 /* WindupSoundGenerator.swift */; };
+		BB0000000000000000000009 /* IconGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000009 /* IconGenerator.swift */; };
 		BB0000000000000000000004 /* StatusItemController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000004 /* StatusItemController.swift */; };
 		BB0000000000000000000005 /* TimerPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000005 /* TimerPanel.swift */; };
 		BB0000000000000000000006 /* TimerPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000006 /* TimerPanelView.swift */; };
@@ -36,6 +37,7 @@
 		AA0000000000000000000002 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		AA0000000000000000000003 /* TimerState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerState.swift; sourceTree = "<group>"; };
 		AA0000000000000000000008 /* WindupSoundGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindupSoundGenerator.swift; sourceTree = "<group>"; };
+		AA0000000000000000000009 /* IconGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconGenerator.swift; sourceTree = "<group>"; };
 		AA0000000000000000000004 /* StatusItemController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusItemController.swift; sourceTree = "<group>"; };
 		AA0000000000000000000005 /* TimerPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerPanel.swift; sourceTree = "<group>"; };
 		AA0000000000000000000006 /* TimerPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerPanelView.swift; sourceTree = "<group>"; };
@@ -106,6 +108,7 @@
 			children = (
 				AA0000000000000000000003 /* TimerState.swift */,
 				AA0000000000000000000008 /* WindupSoundGenerator.swift */,
+				AA0000000000000000000009 /* IconGenerator.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -250,6 +253,7 @@
 				BB0000000000000000000002 /* AppDelegate.swift in Sources */,
 				BB0000000000000000000003 /* TimerState.swift in Sources */,
 				BB0000000000000000000008 /* WindupSoundGenerator.swift in Sources */,
+				BB0000000000000000000009 /* IconGenerator.swift in Sources */,
 				BB0000000000000000000004 /* StatusItemController.swift in Sources */,
 				BB0000000000000000000005 /* TimerPanel.swift in Sources */,
 				BB0000000000000000000006 /* TimerPanelView.swift in Sources */,

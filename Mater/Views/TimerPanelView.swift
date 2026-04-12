@@ -14,6 +14,8 @@ struct TimerPanelView: View {
 
     var body: some View {
         ZStack {
+            Color.white
+
             workGradient
                 .opacity(timerState.mode == .breaking ? 0 : 1)
 
@@ -52,7 +54,7 @@ struct TimerPanelView: View {
                 Spacer(minLength: 0)
             }
         }
-        .animation(.linear(duration: 0.5), value: timerState.mode)
+        .animation(.linear(duration: timerState.windDuration > 0 ? timerState.windDuration : 0.2), value: timerState.mode)
         .frame(width: 220, height: 206)
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
