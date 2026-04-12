@@ -80,8 +80,13 @@ struct TimerPanelView: View {
         #if DEBUG
         if debugState?.showTime == true {
             TimelineView(.periodic(from: .now, by: 1)) { _ in
-                let mins = timerState.remainingSeconds / 60
-                let secs = timerState.remainingSeconds % 60
+                let totalSeconds = if isPaused {
+                    Int(ceil(Double(timerState.frozenSliderOffset) / Double(TimerState.pointsPerMinute) * 60.0))
+                } else {
+                    timerState.remainingSeconds
+                }
+                let mins = totalSeconds / 60
+                let secs = totalSeconds % 60
                 Text("[DEBUG: \(String(format: "%d:%02d", mins, secs))]")
                     .font(.system(size: 11, weight: .semibold, design: .monospaced))
                     .foregroundStyle(Color.black.opacity(0.5))

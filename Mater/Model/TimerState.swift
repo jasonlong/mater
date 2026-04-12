@@ -303,9 +303,13 @@ final class TimerState {
     }
 
     func resume() {
-        let minutes = minuteFromOffset(frozenSliderOffset)
-        guard minutes >= 1 else { return }
-        startFromDrag(minutes: minutes, mode: .working)
+        guard frozenSliderOffset >= Self.pointsPerMinute else { return }
+        let exactSeconds = Double(frozenSliderOffset) / Double(Self.pointsPerMinute) * 60.0
+        mode = .working
+        cycleDuration = exactSeconds
+        cycleStartDate = Date()
+        remainingSeconds = Int(ceil(exactSeconds))
+        startTimer()
     }
 
     private func beginWindAnimation(
