@@ -18,12 +18,13 @@ struct RulerView: View {
     private var tickSpacing: CGFloat { blockWidth / 5 }
 
     var body: some View {
-        // Read preferences outside TimelineView so changes trigger re-render
+        // Read observed values outside TimelineView so changes trigger re-render
         let labels = minuteLabels
         let tickWidth = totalTickWidth
         let totalWidth = sliderWidth
         let minutes = maxMinutes
         let spacing = tickSpacing
+        let _ = timerState.frozenSliderOffset
 
         TimelineView(.animation(paused: timerState.mode == .stopped && !timerState.isWinding && !timerState.isDragging && !timerState.isMomentum)) { timeline in
             let offset = currentOffset(at: timeline.date)

@@ -12,6 +12,9 @@ private let breakGradient = LinearGradient(colors: [breakGreen, breakGreenDark],
 struct TimerPanelView: View {
     var timerState: TimerState
     var showSettings: () -> Void = {}
+    #if DEBUG
+    var debugState: DebugState?
+    #endif
 
     var body: some View {
         ZStack {
@@ -24,7 +27,7 @@ struct TimerPanelView: View {
                 .opacity(timerState.mode == .breaking ? 1 : 0)
 
             VStack(spacing: 0) {
-                Spacer()
+                debugTimeLabel
                     .frame(height: 41)
 
                 RulerView(timerState: timerState)
@@ -69,6 +72,27 @@ struct TimerPanelView: View {
         .animation(.linear(duration: timerState.windDuration > 0 ? timerState.windDuration : 0.2), value: timerState.mode)
         .frame(width: 220, height: 206)
         .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    @ViewBuilder
+    private var debugTimeLabel: some View {
+        #if DEBUG
+        if debugState?.showTime == true {
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                let mins = timerState.remainingSeconds / 60
+                let secs = timerState.remainingSeconds % 60
+                Text("[DEBUG: \(String(format: "%d:%02d", mins, secs))]")
+                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(Color.black.opacity(0.5))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 6)
+        } else {
+            Spacer()
+        }
+        #else
+        Spacer()
+        #endif
     }
 
     @ViewBuilder

@@ -60,6 +60,43 @@ final class TimerState {
         clickSound = Self.loadSound("click")
         dingSound = Self.loadSound("ding")
         tickPlayer = WindupSoundGenerator.generate(clickCount: 1, totalDuration: 0.02)
+        observePreferences()
+    }
+
+    private func observePreferences() {
+        withObservationTracking {
+            _ = preferences.workMinutes
+            _ = preferences.breakMinutes
+        } onChange: { [weak self] in
+            Task { @MainActor in
+                self?.handlePreferencesChanged()
+                self?.observePreferences()
+            }
+        }
+    }
+
+    private func handlePreferencesChanged() {
+        guard !isDragging, !isMomentum, !isWinding else { return }
+
+        let newMax = preferences.workMinutes
+        let newMaxOffset = CGFloat(newMax) * Self.pointsPerMinute
+
+        if mode == .stopped {
+            if frozenSliderOffset > newMaxOffset {
+                frozenSliderOffset = newMaxOffset
+            }
+            let minutes = minuteFromOffset(frozenSliderOffset)
+            remainingSeconds = minutes * 60
+        } else if mode == .working, let startDate = cycleStartDate {
+            let elapsed = Date().timeIntervalSince(startDate)
+            let newDuration = TimeInterval(newMax * 60)
+            if elapsed >= newDuration {
+                stop()
+            } else {
+                cycleDuration = newDuration
+                remainingSeconds = Int(ceil(newDuration - elapsed))
+            }
+        }
     }
 
     var currentMinute: Int {
@@ -80,9 +117,9 @@ final class TimerState {
     func continuousSliderOffset(at date: Date) -> CGFloat {
         guard let startDate = cycleStartDate, cycleDuration > 0 else { return 0 }
         let elapsed = date.timeIntervalSince(startDate)
-        let fraction = min(max(elapsed / cycleDuration, 0), 1)
-        let sliderWidth = CGFloat(cycleDuration / 60.0) * Self.pointsPerMinute
-        return sliderWidth * CGFloat(1 - fraction)
+        let remainingSeconds = max(cycleDuration - elapsed, 0)
+        let remainingMinutes = remainingSeconds / 60.0
+        return CGFloat(remainingMinutes) * Self.pointsPerMinute
     }
 
     func windingSliderOffset(at date: Date) -> CGFloat {
