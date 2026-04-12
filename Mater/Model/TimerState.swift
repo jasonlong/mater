@@ -27,6 +27,10 @@ final class TimerState {
     private(set) var dragMinute: Int = 0
     private var dragMode: TimerMode = .working
 
+    private(set) var isMomentum: Bool = false
+    private(set) var momentumVelocity: CGFloat = 0
+    private(set) var momentumLastUpdate: Date?
+
     private(set) var isWinding: Bool = false
     private(set) var windStartDate: Date?
     private(set) var windDuration: TimeInterval = 0
@@ -95,7 +99,10 @@ final class TimerState {
     }
 
     func dragBegan() {
-        if isWinding {
+        if isMomentum {
+            isMomentum = false
+            momentumLastUpdate = nil
+        } else if isWinding {
             frozenSliderOffset = windingSliderOffset(at: Date())
             cancelWind()
         } else if mode != .stopped {
@@ -127,9 +134,67 @@ final class TimerState {
         }
     }
 
-    func dragEnded() {
+    func dragEnded(velocity: CGFloat) {
         guard isDragging else { return }
         isDragging = false
+
+        // If thrown with enough velocity, start momentum phase
+        if abs(velocity) > 30 {
+            isMomentum = true
+            momentumVelocity = velocity
+            momentumLastUpdate = Date()
+            return
+        }
+
+        settleDrag()
+    }
+
+    func updateMomentum(at date: Date) {
+        guard isMomentum, let lastUpdate = momentumLastUpdate else { return }
+        let dt = date.timeIntervalSince(lastUpdate)
+        guard dt > 0 else { return }
+        momentumLastUpdate = date
+
+        let friction: CGFloat = 0.92
+        momentumVelocity *= pow(friction, CGFloat(dt * 60))
+
+        // Project where we'd stop and find the nearest minute tick
+        let projectedStop = frozenSliderOffset + momentumVelocity * 0.3
+        let nearestMinuteOffset = round(projectedStop / Self.pointsPerMinute) * Self.pointsPerMinute
+        let targetOffset = min(max(nearestMinuteOffset, 0), maxWorkOffset)
+
+        // As velocity drops, blend toward the target tick mark
+        let speed = abs(momentumVelocity)
+        let blendThreshold: CGFloat = 150
+        if speed < blendThreshold {
+            let blend = 1.0 - (speed / blendThreshold)
+            let springStrength: CGFloat = 12.0 * blend
+            let distanceToTarget = targetOffset - frozenSliderOffset
+            momentumVelocity += distanceToTarget * springStrength * CGFloat(dt)
+        }
+
+        frozenSliderOffset = min(max(frozenSliderOffset + momentumVelocity * CGFloat(dt), 0), maxWorkOffset)
+
+        let minutes = minuteFromOffset(frozenSliderOffset)
+        remainingSeconds = minutes * 60
+        mode = frozenSliderOffset > 0 ? dragMode : .stopped
+
+        if minutes != dragMinute {
+            playTick()
+            dragMinute = minutes
+        }
+
+        let atTarget = abs(frozenSliderOffset - targetOffset) < 0.5
+        if atTarget && speed < 10 {
+            frozenSliderOffset = targetOffset
+            isMomentum = false
+            momentumLastUpdate = nil
+            playTick()
+            settleDrag()
+        }
+    }
+
+    private func settleDrag() {
         let minutes = minuteFromOffset(frozenSliderOffset)
         if minutes >= 1 {
             startFromDrag(minutes: minutes, mode: dragMode)

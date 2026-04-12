@@ -21,7 +21,7 @@ private func makeTimerState(workMinutes: Int = 25, breakMinutes: Int = 5) -> Tim
 private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     state.dragBegan()
     state.dragChanged(offset: CGFloat(minutes) * TimerState.pointsPerMinute)
-    state.dragEnded()
+    state.dragEnded(velocity: 0)
 }
 
 // MARK: - AppPreferences
@@ -190,7 +190,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         state.dragChanged(offset: 999)
         // Max offset = 15 * 20 = 300
         #expect(state.frozenSliderOffset == 300)
-        state.dragEnded()
+        state.dragEnded(velocity: 0)
         state.stop()
     }
 
@@ -271,7 +271,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(state.mode == .working)
         #expect(state.remainingSeconds == 600)
 
-        state.dragEnded()
+        state.dragEnded(velocity: 0)
         #expect(state.isDragging == false)
         #expect(state.mode == .working)
         #expect(state.remainingSeconds == 600)
@@ -284,7 +284,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         state.dragBegan()
         state.dragChanged(offset: 100)
         state.dragChanged(offset: 0)
-        state.dragEnded()
+        state.dragEnded(velocity: 0)
 
         #expect(state.mode == .stopped)
         #expect(state.remainingSeconds == 0)
@@ -300,7 +300,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         state.dragChanged(offset: -50)
         #expect(state.frozenSliderOffset == 0)
 
-        state.dragEnded()
+        state.dragEnded(velocity: 0)
     }
 
     @Test func dragWhileRunningCapturesOffset() {
@@ -313,7 +313,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(state.cycleStartDate == nil)
 
         state.dragChanged(offset: 200)
-        state.dragEnded()
+        state.dragEnded(velocity: 0)
 
         #expect(state.cycleDuration == 600)
         #expect(state.remainingSeconds == 600)
@@ -331,7 +331,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(state.isDragging == true)
 
         state.dragChanged(offset: 200)
-        state.dragEnded()
+        state.dragEnded(velocity: 0)
         state.stop()
     }
 
@@ -349,8 +349,81 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(state.currentMinute == 5)
         #expect(state.iconName == "icon-5")
 
-        state.dragEnded()
+        state.dragEnded(velocity: 0)
         state.stop()
+    }
+
+    @Test func dragEndWithVelocityStartsMomentum() {
+        let state = makeTimerState()
+        state.dragBegan()
+        state.dragChanged(offset: 200)
+        state.dragEnded(velocity: 500)
+
+        #expect(state.isMomentum == true)
+        #expect(state.isDragging == false)
+    }
+
+    @Test func dragEndWithLowVelocitySettlesImmediately() {
+        let state = makeTimerState()
+        state.dragBegan()
+        state.dragChanged(offset: 200)
+        state.dragEnded(velocity: 10)
+
+        #expect(state.isMomentum == false)
+        #expect(state.mode == .working)
+        #expect(state.cycleStartDate != nil)
+    }
+
+    @Test func momentumDecaysAndSettlesOnMinuteMark() {
+        let state = makeTimerState()
+        state.dragBegan()
+        state.dragChanged(offset: 200)
+        state.dragEnded(velocity: 100)
+        #expect(state.isMomentum == true)
+
+        // Simulate frames until it settles
+        var date = Date()
+        for _ in 0..<300 {
+            date = date.addingTimeInterval(1.0 / 60.0)
+            state.updateMomentum(at: date)
+            if !state.isMomentum { break }
+        }
+
+        #expect(state.isMomentum == false)
+        // Should land exactly on a minute tick (multiple of pointsPerMinute)
+        let remainder = state.frozenSliderOffset.truncatingRemainder(dividingBy: TimerState.pointsPerMinute)
+        #expect(remainder < 0.01 || abs(remainder - TimerState.pointsPerMinute) < 0.01)
+    }
+
+    @Test func grabDuringMomentumStopsIt() {
+        let state = makeTimerState()
+        state.dragBegan()
+        state.dragChanged(offset: 200)
+        state.dragEnded(velocity: 500)
+        #expect(state.isMomentum == true)
+
+        state.dragBegan()
+        #expect(state.isMomentum == false)
+        #expect(state.isDragging == true)
+
+        state.dragEnded(velocity: 0)
+    }
+
+    @Test func momentumClampsToRange() {
+        let state = makeTimerState()
+        state.dragBegan()
+        state.dragChanged(offset: 480)
+        state.dragEnded(velocity: 2000) // big throw toward max
+
+        var date = Date()
+        for _ in 0..<300 {
+            date = date.addingTimeInterval(1.0 / 60.0)
+            state.updateMomentum(at: date)
+            if !state.isMomentum { break }
+        }
+
+        #expect(state.frozenSliderOffset <= 500)
+        #expect(state.frozenSliderOffset >= 0)
     }
 
     @Test func customDurationSliderWidth() {
@@ -358,7 +431,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
 
         state.dragBegan()
         state.dragChanged(offset: 200)
-        state.dragEnded()
+        state.dragEnded(velocity: 0)
 
         let offset = state.continuousSliderOffset(at: state.cycleStartDate!)
         #expect(offset == 200)

@@ -25,16 +25,8 @@ struct RulerView: View {
         let minutes = maxMinutes
         let spacing = tickSpacing
 
-        TimelineView(.animation(paused: timerState.mode == .stopped && !timerState.isWinding && !timerState.isDragging)) { timeline in
-            let offset: CGFloat = if timerState.isDragging {
-                -timerState.frozenSliderOffset
-            } else if timerState.isWinding {
-                -timerState.windingSliderOffset(at: timeline.date)
-            } else if timerState.mode == .stopped {
-                -timerState.frozenSliderOffset
-            } else {
-                -timerState.continuousSliderOffset(at: timeline.date)
-            }
+        TimelineView(.animation(paused: timerState.mode == .stopped && !timerState.isWinding && !timerState.isDragging && !timerState.isMomentum)) { timeline in
+            let offset = currentOffset(at: timeline.date)
 
             GeometryReader { _ in
                 VStack(alignment: .leading, spacing: 0) {
@@ -75,6 +67,21 @@ struct RulerView: View {
         .gesture(dragGesture)
     }
 
+    private func currentOffset(at date: Date) -> CGFloat {
+        if timerState.isMomentum {
+            timerState.updateMomentum(at: date)
+            return -timerState.frozenSliderOffset
+        } else if timerState.isDragging {
+            return -timerState.frozenSliderOffset
+        } else if timerState.isWinding {
+            return -timerState.windingSliderOffset(at: date)
+        } else if timerState.mode == .stopped {
+            return -timerState.frozenSliderOffset
+        } else {
+            return -timerState.continuousSliderOffset(at: date)
+        }
+    }
+
     private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 4)
             .onChanged { value in
@@ -85,8 +92,11 @@ struct RulerView: View {
                 let newOffset = dragStartOffset - value.translation.width
                 timerState.dragChanged(offset: newOffset)
             }
-            .onEnded { _ in
-                timerState.dragEnded()
+            .onEnded { value in
+                // Derive velocity from SwiftUI's predicted end translation
+                let remaining = value.predictedEndTranslation.width - value.translation.width
+                let velocity = -remaining * 3 // negative because drag left = positive offset
+                timerState.dragEnded(velocity: velocity)
             }
     }
 }
