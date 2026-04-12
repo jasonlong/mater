@@ -61,6 +61,33 @@ final class TimerState {
         dingSound = Self.loadSound("ding")
         tickPlayer = WindupSoundGenerator.generate(clickCount: 1, totalDuration: 0.02)
         observePreferences()
+        observeWake()
+    }
+
+    private func observeWake() {
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.resyncAfterWake()
+            }
+        }
+    }
+
+    private func resyncAfterWake() {
+        guard mode == .working || mode == .breaking,
+              let startDate = cycleStartDate else { return }
+
+        let elapsed = Date().timeIntervalSince(startDate)
+        let remaining = cycleDuration - elapsed
+
+        if remaining <= 0 {
+            cycleComplete()
+        } else {
+            remainingSeconds = Int(ceil(remaining))
+        }
     }
 
     private func observePreferences() {
@@ -357,10 +384,15 @@ final class TimerState {
     }
 
     private func tick() {
-        guard remainingSeconds > 0 else { return }
-        remainingSeconds -= 1
-        if remainingSeconds == 0 {
+        guard let startDate = cycleStartDate else { return }
+        let elapsed = Date().timeIntervalSince(startDate)
+        let remaining = Int(ceil(cycleDuration - elapsed))
+
+        if remaining <= 0 {
+            remainingSeconds = 0
             cycleComplete()
+        } else {
+            remainingSeconds = remaining
         }
     }
 
