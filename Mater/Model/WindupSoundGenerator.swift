@@ -2,7 +2,7 @@ import AVFoundation
 
 struct WindupSoundGenerator {
     private static let sampleRate: Double = 44100
-    private static let clickDuration: Double = 0.012
+    private static let clickDuration: Double = 0.003
 
     static func generate(clickCount: Int, totalDuration: TimeInterval) -> AVAudioPlayer? {
         guard clickCount > 0, totalDuration > 0 else { return nil }
@@ -15,11 +15,13 @@ struct WindupSoundGenerator {
         guard let samples = buffer.floatChannelData?[0] else { return nil }
         for i in 0..<Int(totalFrames) { samples[i] = 0 }
 
-        // Seeded random for reproducible output
         var rng: UInt64 = 12345
         func nextRandom() -> Float {
             rng = rng &* 6364136223846793005 &+ 1442695040888963407
             return Float(Int64(bitPattern: rng >> 33)) / Float(Int64.max >> 33)
+        }
+        func nextRandomPositive() -> Float {
+            abs(nextRandom())
         }
 
         let clickTimes = clickTimings(count: clickCount, totalDuration: totalDuration)
@@ -27,21 +29,25 @@ struct WindupSoundGenerator {
 
         for clickTime in clickTimes {
             let startFrame = Int(clickTime * sampleRate)
+            // Random amplitude variation per click for organic feel (0.5 to 1.0)
+            let clickAmp = 0.5 + Double(nextRandomPositive()) * 0.5
+
             for i in 0..<clickFrames {
                 let frame = startFrame + i
                 guard frame < Int(totalFrames) else { break }
                 let t = Double(i) / Double(clickFrames)
 
-                // Sharp noise burst for the initial impact (first 2ms)
-                let noiseEnvelope = Float(exp(-t * 25.0))
-                let noise = nextRandom() * noiseEnvelope * 0.15
+                // Very fast exponential decay for sharp transient
+                let envelope = Float(exp(-t * 60.0)) * Float(clickAmp)
 
-                let ringEnvelope = Float(exp(-t * 6.0))
-                let ring1 = Float(sin(2.0 * .pi * 3000.0 * Double(i) / sampleRate))
-                let ring2 = Float(sin(2.0 * .pi * 4500.0 * Double(i) / sampleRate))
-                let ring = (ring1 * 0.15 + ring2 * 0.08) * ringEnvelope
+                // Three metallic frequency bands matching the reference
+                let f1 = Float(sin(2.0 * .pi * 3000.0 * Double(i) / sampleRate)) * 0.125
+                let f2 = Float(sin(2.0 * .pi * 6350.0 * Double(i) / sampleRate)) * 0.10
+                let f3 = Float(sin(2.0 * .pi * 8650.0 * Double(i) / sampleRate)) * 0.0625
 
-                samples[frame] += noise + ring
+                let noise = nextRandom() * 0.075
+
+                samples[frame] += (f1 + f2 + f3 + noise) * envelope
             }
         }
 
@@ -52,8 +58,6 @@ struct WindupSoundGenerator {
     private static func clickTimings(count: Int, totalDuration: TimeInterval) -> [TimeInterval] {
         guard count > 1 else { return [0] }
 
-        // Match the ruler's quadratic ease-out: dense at start, sparse at end.
-        // Ease-out: position = 1 - (1-t)^2, so t = 1 - sqrt(1 - position)
         var times: [TimeInterval] = []
         for i in 0..<count {
             let position = Double(i) / Double(count - 1)
