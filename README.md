@@ -3,7 +3,7 @@
 [![GitHub release](https://img.shields.io/github/release/jasonlong/mater.svg)](https://github.com/jasonlong/mater/releases/latest)
 ![CI](https://github.com/jasonlong/mater/actions/workflows/ci.yml/badge.svg)
 
-<img src="screenshot.png" width="326" alt="Mater screenshot">
+<img src="screenshot.png" width="644" alt="Mater screenshot">
 
 A minimal Pomodoro timer that lives in your macOS menu bar. Wind up a work session, take a break, repeat. As of version 3, Mater is now macOS-only and is now written in Swift.
 
