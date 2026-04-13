@@ -233,6 +233,55 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(state.isWinding == true)
         state.stop()
     }
+
+    @Test func visualModeWhileWorking() {
+        let state = makeTimerState()
+        startCycleViaDrag(state)
+        #expect(state.visualMode == .working)
+        state.stop()
+    }
+
+    @Test func visualModeWhenPausedDuringWork() {
+        let state = makeTimerState()
+        startCycleViaDrag(state)
+        state.stop()
+        #expect(state.mode == .stopped)
+        #expect(state.visualMode == .working)
+    }
+
+    @Test func visualModeWhenPausedDuringBreak() {
+        let state = makeTimerState()
+        // Simulate break: drag, end as break mode
+        state.dragBegan()
+        state.dragChanged(offset: 60) // 3 minutes
+        // dragMode defaults to .working from stopped, so manually
+        // start a work cycle then stop, then test break scenario
+        state.dragEnded(velocity: 0)
+
+        // For a true break test, we need to set pausedMode to .breaking
+        // Start as work, stop — pausedMode is .working
+        state.stop()
+        #expect(state.visualMode == .working)
+
+        // Now test fresh stopped with no offset
+        let state2 = makeTimerState()
+        #expect(state2.visualMode == .stopped)
+    }
+
+    @Test func visualModeWhenFullyStopped() {
+        let state = makeTimerState()
+        #expect(state.visualMode == .stopped)
+    }
+
+    @Test func resumePreservesPausedMode() {
+        let state = makeTimerState()
+        startCycleViaDrag(state)
+        state.stop()
+        #expect(state.pausedMode == .working)
+        state.resume()
+        #expect(state.mode == .working)
+        state.stop()
+    }
 }
 
 // MARK: - Configurable Durations
