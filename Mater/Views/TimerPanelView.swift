@@ -64,11 +64,13 @@ struct TimerPanelView: View {
                 Image(systemName: "gearshape")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.white.opacity(0.6))
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .focusable(false)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            .padding(8)
+            .padding(4)
         }
         .animation(.linear(duration: timerState.windDuration > 0 ? timerState.windDuration : 0.2), value: timerState.visualMode)
         .frame(width: 220, height: 206)
