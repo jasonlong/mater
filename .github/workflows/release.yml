@@ -1,163 +1,270 @@
 name: Release
 
 on:
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
-    inputs:
-      version_type:
-        description: 'Version bump type'
-        required: true
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run linting
-        run: npm run lint
-
-  version:
-    needs: lint
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+  build-and-release:
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      APP_PATH: /tmp/mater-export/Mater.app
+      XCARCHIVE_PATH: /tmp/Mater.xcarchive
+      EXPORT_PATH: /tmp/mater-export
+      EXPORT_OPTIONS_PLIST: /tmp/MaterExportOptions.plist
+      ARCHIVE_PATH: /tmp/Mater-${{ github.ref_name }}-unsigned.zip
+      FINAL_ARCHIVE_PATH: Mater-${{ github.ref_name }}-macos.zip
+      KEYCHAIN_PATH: /tmp/mater-build.keychain-db
+      KEYCHAIN_PROFILE: mater-notary
 
     steps:
-      - name: Checkout
+      - name: Check out repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+      - name: Show Xcode version
+        run: xcodebuild -version
 
-      - name: Configure Git
+      - name: Resolve release version
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "RELEASE_MARKETING_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          echo "RELEASE_BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
 
-      - name: Bump version
-        id: version
+      - name: Run test suite
         run: |
-          node scripts/version.js ${{ inputs.version_type }}
-          VERSION=$(node scripts/version.js get)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          xcodebuild test \
+            -scheme Mater \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath .deriveddata \
+            MARKETING_VERSION="$RELEASE_MARKETING_VERSION" \
+            CURRENT_PROJECT_VERSION="$RELEASE_BUILD_NUMBER"
 
-      - name: Commit and tag
+      - name: Import Developer ID certificate
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: |
-          git add package.json package-lock.json
-          git commit -m "Bump version to ${{ steps.version.outputs.version }}"
-          git tag "v${{ steps.version.outputs.version }}"
-          git push origin HEAD
-          git push origin "v${{ steps.version.outputs.version }}"
+          test -n "$APPLE_CERTIFICATE_BASE64"
+          test -n "$APPLE_CERTIFICATE_PASSWORD"
+          test -n "$APPLE_SIGNING_IDENTITY"
 
-  build:
-    needs: version
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            platform: darwin
-          - os: windows-latest
-            platform: win32
-          - os: ubuntu-latest
-            platform: linux
+          CERTIFICATE_PATH=/tmp/mater-developer-id.p12
+          KEYCHAIN_PASSWORD="$(uuidgen)"
 
-    runs-on: ${{ matrix.os }}
-    permissions:
-      contents: write
+          printf '%s' "$APPLE_CERTIFICATE_BASE64" | base64 -D > "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" \
+            -k "$KEYCHAIN_PATH" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security \
+            -T /usr/bin/xcrun
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+          security default-keychain -d user -s "$KEYCHAIN_PATH"
+          echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> "$GITHUB_ENV"
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.version.outputs.version }}
+      - name: Verify certificate
+        run: |
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
+      - name: Create export options plist
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > "$EXPORT_OPTIONS_PLIST" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>developer-id</string>
+            <key>signingCertificate</key>
+            <string>${APPLE_SIGNING_IDENTITY}</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+          </dict>
+          </plist>
+          EOF
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Archive signed release app
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          test -n "$APPLE_SIGNING_IDENTITY"
+          test -n "$APPLE_TEAM_ID"
 
-      - name: Build
-        run: npm run make
+          xcodebuild archive \
+            -scheme Mater \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -derivedDataPath .deriveddata-release \
+            -archivePath "$XCARCHIVE_PATH" \
+            MARKETING_VERSION="$RELEASE_MARKETING_VERSION" \
+            CURRENT_PROJECT_VERSION="$RELEASE_BUILD_NUMBER" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$APPLE_SIGNING_IDENTITY" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            OTHER_CODE_SIGN_FLAGS="--timestamp"
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: mater-${{ matrix.platform }}-${{ github.run_id }}
-          path: |
-            out/make/**/*.dmg
-            out/make/**/*.zip
-            out/make/**/*.exe
-          if-no-files-found: ignore
+      - name: Export Developer ID app
+        run: |
+          rm -rf "$EXPORT_PATH"
+          xcodebuild -exportArchive \
+            -archivePath "$XCARCHIVE_PATH" \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist "$EXPORT_OPTIONS_PLIST"
 
-  release:
-    needs: [version, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+      - name: Verify signed app
+        run: |
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          codesign --display --verbose=4 "$APP_PATH"
 
-    steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
+      - name: Store notarization credentials
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          test -n "$APPLE_ID"
+          test -n "$APPLE_APP_SPECIFIC_PASSWORD"
+          test -n "$APPLE_TEAM_ID"
+          xcrun notarytool store-credentials "$KEYCHAIN_PROFILE" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --keychain "$KEYCHAIN_PATH"
 
-      - name: List artifacts
-        run: find artifacts -type f 2>/dev/null || echo "No artifacts directory"
+      - name: Create notarization archive
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$APP_PATH" \
+            "$ARCHIVE_PATH"
 
-      - name: Create GitHub Release
+      - name: Submit for notarization
+        run: |
+          xcrun notarytool submit "$ARCHIVE_PATH" \
+            --keychain-profile "$KEYCHAIN_PROFILE" \
+            --keychain "$KEYCHAIN_PATH" \
+            --wait \
+            --output-format json | tee /tmp/notary-submit-output.json
+
+      - name: Show notarization submission output
+        if: always()
+        run: |
+          cat /tmp/notary-submit-output.json
+
+      - name: Fetch notarization log on rejection
+        run: |
+          submission_id="$(/usr/bin/plutil -extract id raw -o - /tmp/notary-submit-output.json)"
+          status="$(/usr/bin/plutil -extract status raw -o - /tmp/notary-submit-output.json)"
+
+          if [ "$status" = "Accepted" ]; then
+            exit 0
+          fi
+
+          echo "Notarization status: $status"
+          xcrun notarytool log "$submission_id" \
+            --keychain-profile "$KEYCHAIN_PROFILE" \
+            --keychain "$KEYCHAIN_PATH" \
+            /tmp/notary-log.json
+          cat /tmp/notary-log.json
+          exit 1
+
+      - name: Staple notarization ticket
+        run: |
+          for attempt in $(seq 1 20); do
+            if xcrun stapler staple "$APP_PATH"; then
+              break
+            fi
+
+            if [ "$attempt" -eq 20 ]; then
+              exit 65
+            fi
+
+            echo "Stapler ticket not available yet; retrying in 15 seconds (attempt $attempt/20)..."
+            sleep 15
+          done
+          xcrun stapler validate "$APP_PATH"
+          spctl --assess --type execute --verbose=4 "$APP_PATH"
+
+      - name: Package signed release app
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            "$APP_PATH" \
+            "$FINAL_ARCHIVE_PATH"
+
+      - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.version.outputs.version }}
-          name: v${{ needs.version.outputs.version }}
+          files: ${{ env.FINAL_ARCHIVE_PATH }}
           generate_release_notes: true
           body: |
             ## Installation
 
-            ### macOS
-            1. Download the `.dmg` file below
-            2. Open the DMG and drag Mater to Applications
-            3. **Important:** Before first launch, run this command in Terminal:
-               ```
-               xattr -cr /Applications/Mater.app
-               ```
-            4. Open Mater from Applications
+            1. Download the `.zip` file below
+            2. Unzip and drag Mater to Applications
+            3. Open Mater from Applications
 
-            This removes the quarantine flag that macOS adds to downloaded apps.
+      - name: Clean up signing keychain
+        if: always()
+        run: |
+          security delete-keychain "$KEYCHAIN_PATH" || true
 
-            ### Windows
-            Download and run the `.exe` installer.
+  update-homebrew:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Update Homebrew cask
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          URL="https://github.com/jasonlong/mater/releases/download/v${VERSION}/Mater-v${VERSION}-macos.zip"
+          SHA256=$(curl -sL "$URL" | shasum -a 256 | awk '{print $1}')
 
-            ### Linux
-            Download the `.zip` file and extract it.
+          git clone https://x-access-token:${TAP_TOKEN}@github.com/jasonlong/homebrew-tap.git tap
+          cd tap
 
-            ---
-          files: |
-            artifacts/**/*.dmg
-            artifacts/**/*.zip
-            artifacts/**/*.exe
+          cat > Casks/mater.rb << CASK
+          cask "mater" do
+            version "${VERSION}"
+            sha256 "${SHA256}"
+
+            url "https://github.com/jasonlong/mater/releases/download/v#{version}/Mater-v#{version}-macos.zip"
+            name "Mater"
+            desc "Pomodoro timer in the macOS menu bar"
+            homepage "https://github.com/jasonlong/mater"
+
+            depends_on macos: ">= :sonoma"
+
+            app "Mater.app"
+
+            zap trash: [
+              "~/Library/Preferences/me.jasonlong.mater.plist",
+            ]
+          end
+          CASK
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/mater.rb
+          git commit -m "Update mater to ${VERSION}"
+          git push
