@@ -31,6 +31,6 @@ Download the latest `.zip` from [Releases](https://github.com/jasonlong/mater/re
 
 ### What's with the name?
 
-I'm a Pixar fan and Mater is awesome. ["Like Ta-mater without the ta"](https://youtu.be/MJm8vNTasMg?t=25s). Get it?
+I'm a Pixar fan and Mater is awesome. ["Like Ta-mater, but without the ta"](https://youtu.be/MJm8vNTasMg?t=25s). Get it?
 
 <img src="mater-truck.png" width="100" alt="Mater truck">
