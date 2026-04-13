@@ -157,11 +157,9 @@ private struct AboutSettingsPane: View {
             Spacer()
 
             VStack(spacing: 16) {
-                if let icon = NSApp.applicationIconImage {
-                    Image(nsImage: icon)
-                        .resizable()
-                        .frame(width: 96, height: 96)
-                }
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .frame(width: 96, height: 96)
 
                 VStack(spacing: 4) {
                     Text("Mater")

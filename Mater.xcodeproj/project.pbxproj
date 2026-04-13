@@ -21,6 +21,7 @@
 		BB0000000000000000000007 /* RulerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000007 /* RulerView.swift */; };
 		BB000000000000000000000C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000C /* Assets.xcassets */; };
 		BB0000000000000000000011 /* click.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* click.wav */; };
+		BB0000000000000000000031 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000031 /* AppIcon.icon */; };
 		BB0000000000000000000012 /* ding.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* ding.wav */; };
 		BB0000000000000000000020 /* TimerStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000020 /* TimerStateTests.swift */; };
 /* End PBXBuildFile section */
@@ -49,6 +50,7 @@
 		AA0000000000000000000006 /* TimerPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerPanelView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000007 /* RulerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulerView.swift; sourceTree = "<group>"; };
 		AA000000000000000000000C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA0000000000000000000031 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		AA000000000000000000000D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA000000000000000000000E /* Mater.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mater.entitlements; sourceTree = "<group>"; };
 		AA000000000000000000000F /* Mater.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mater.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,6 +81,7 @@
 		CC0000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				AA0000000000000000000031 /* AppIcon.icon */,
 				CC0000000000000000000002 /* Mater */,
 				CC0000000000000000000009 /* MaterTests */,
 				CC0000000000000000000007 /* Products */,
@@ -176,6 +179,7 @@
 				DD0000000000000000000003 /* Sources */,
 				DD0000000000000000000005 /* Frameworks */,
 				DD0000000000000000000004 /* Resources */,
+				DD0000000000000000000015 /* Remove Legacy Icon Key */,
 			);
 			buildRules = (
 			);
@@ -246,12 +250,31 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB000000000000000000000C /* Assets.xcassets in Resources */,
+				BB0000000000000000000031 /* AppIcon.icon in Resources */,
 				BB0000000000000000000011 /* click.wav in Resources */,
 				BB0000000000000000000012 /* ding.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		DD0000000000000000000015 /* Remove Legacy Icon Key */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Remove Legacy Icon Key";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/libexec/PlistBuddy -c \"Delete :CFBundleIconFile\" \"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\" >/dev/null 2>&1 || true\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		DD0000000000000000000003 /* Sources */ = {
@@ -405,6 +428,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Mater/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -430,6 +454,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Mater/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
