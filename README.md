@@ -14,7 +14,7 @@ A minimal Pomodoro timer that lives in your macOS menu bar. Wind up a work sessi
 - Configurable work and break durations
 - Menubar icon counts down minutes remaining
 - Keyboard shortcuts: spacebar to play/pause, escape to dismiss
-- Sound effects for winding and button clicks can be turned off
+- Sound effects (by (snd.dev)[https://snd.dev]) for winding and button clicks can be turned off
 
 ### Installation
 
