@@ -22,7 +22,7 @@ A minimal Pomodoro timer that lives in your macOS menu bar. Wind up a work sessi
 
 ```
 brew tap jasonlong/tap
-brew install mater
+brew install jasonlong/tap/mater
 ```
 
 #### Manual
