@@ -20,7 +20,6 @@
 		BB0000000000000000000006 /* TimerPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000006 /* TimerPanelView.swift */; };
 		BB0000000000000000000007 /* RulerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000007 /* RulerView.swift */; };
 		BB000000000000000000000C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000000C /* Assets.xcassets */; };
-		BB0000000000000000000011 /* click.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* click.wav */; };
 		BB0000000000000000000031 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000031 /* AppIcon.icon */; };
 		BB0000000000000000000012 /* ding.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* ding.wav */; };
 		BB0000000000000000000013 /* toggle_on.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000013 /* toggle_on.wav */; };
@@ -57,7 +56,6 @@
 		AA000000000000000000000D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AA000000000000000000000E /* Mater.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Mater.entitlements; sourceTree = "<group>"; };
 		AA000000000000000000000F /* Mater.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Mater.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		AA0000000000000000000011 /* click.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click.wav; sourceTree = "<group>"; };
 		AA0000000000000000000012 /* ding.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ding.wav; sourceTree = "<group>"; };
 		AA0000000000000000000013 /* toggle_on.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = toggle_on.wav; sourceTree = "<group>"; };
 		AA0000000000000000000014 /* toggle_off.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = toggle_off.wav; sourceTree = "<group>"; };
@@ -152,7 +150,6 @@
 		CC0000000000000000000006 /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
-				AA0000000000000000000011 /* click.wav */,
 				AA0000000000000000000012 /* ding.wav */,
 				AA0000000000000000000013 /* toggle_on.wav */,
 				AA0000000000000000000014 /* toggle_off.wav */,
@@ -260,7 +257,6 @@
 			files = (
 				BB000000000000000000000C /* Assets.xcassets in Resources */,
 				BB0000000000000000000031 /* AppIcon.icon in Resources */,
-				BB0000000000000000000011 /* click.wav in Resources */,
 				BB0000000000000000000012 /* ding.wav in Resources */,
 				BB0000000000000000000013 /* toggle_on.wav in Resources */,
 				BB0000000000000000000014 /* toggle_off.wav in Resources */,

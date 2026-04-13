@@ -2,16 +2,8 @@ import AVFoundation
 
 struct WindupSoundGenerator {
     private static let sampleRate: Double = 44100
-    private static var dataCache: [Int: Data] = [:]
-
     static func generate(clickCount: Int, totalDuration: TimeInterval) -> AVAudioPlayer? {
         guard clickCount > 0, totalDuration > 0 else { return nil }
-
-        // Use cached WAV data if available for this click count
-        if let cached = dataCache[clickCount] {
-            return try? AVAudioPlayer(data: cached)
-        }
-
         guard let tickSamples = loadTickSamples() else { return nil }
 
         let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
@@ -42,7 +34,6 @@ struct WindupSoundGenerator {
         }
 
         guard let data = bufferToWAVData(buffer) else { return nil }
-        dataCache[clickCount] = data
         return try? AVAudioPlayer(data: data)
     }
 

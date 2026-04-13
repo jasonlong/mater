@@ -21,10 +21,10 @@ struct TimerPanelView: View {
             Color.white
 
             workGradient
-                .opacity(timerState.mode == .breaking ? 0 : 1)
+                .opacity(timerState.visualMode == .breaking ? 0 : 1)
 
             breakGradient
-                .opacity(timerState.mode == .breaking ? 1 : 0)
+                .opacity(timerState.visualMode == .breaking ? 1 : 0)
 
             VStack(spacing: 0) {
                 debugTimeLabel
@@ -70,7 +70,7 @@ struct TimerPanelView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
             .padding(8)
         }
-        .animation(.linear(duration: timerState.windDuration > 0 ? timerState.windDuration : 0.2), value: timerState.mode)
+        .animation(.linear(duration: timerState.windDuration > 0 ? timerState.windDuration : 0.2), value: timerState.visualMode)
         .frame(width: 220, height: 206)
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
@@ -118,7 +118,7 @@ struct TimerPanelView: View {
         Button(label, action: timerState.toggle)
         .buttonStyle(.plain)
         .font(.system(size: 18, weight: .medium))
-        .foregroundColor(timerState.mode == .working ? workRed : buttonDark)
+        .foregroundColor(timerState.visualMode == .working ? workRed : buttonDark)
         .frame(width: 95, height: 38)
         .modifier(GlassButtonModifier())
         .colorScheme(.light)

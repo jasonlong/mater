@@ -26,6 +26,7 @@ final class TimerState {
     private(set) var isDragging: Bool = false
     private(set) var dragMinute: Int = 0
     private var dragMode: TimerMode = .working
+    private(set) var pausedMode: TimerMode = .working
 
     private(set) var isMomentum: Bool = false
     private(set) var momentumVelocity: CGFloat = 0
@@ -140,6 +141,13 @@ final class TimerState {
                 remainingSeconds = Int(ceil(newDuration - elapsed))
             }
         }
+    }
+
+    var visualMode: TimerMode {
+        if mode == .stopped && frozenSliderOffset > 0 {
+            return pausedMode
+        }
+        return mode
     }
 
     var currentMinute: Int {
@@ -324,6 +332,7 @@ final class TimerState {
 
         timer?.invalidate()
         timer = nil
+        pausedMode = mode == .stopped ? .working : mode
         mode = .stopped
         remainingSeconds = 0
         cycleStartDate = nil
@@ -346,7 +355,7 @@ final class TimerState {
         guard frozenSliderOffset >= Self.pointsPerMinute else { return }
         playSound(toggleOnSound)
         let exactSeconds = Double(frozenSliderOffset) / Double(Self.pointsPerMinute) * 60.0
-        mode = .working
+        mode = pausedMode
         cycleDuration = exactSeconds
         cycleStartDate = Date()
         remainingSeconds = Int(ceil(exactSeconds))
