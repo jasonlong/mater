@@ -42,7 +42,6 @@ final class TimerState {
     private var windupPlayer: AVAudioPlayer?
     private var cachedWindupData: [Int: Data] = [:]
 
-    private let clickSound: NSSound?
     private let dingSound: NSSound?
     private let toggleOnSound: NSSound?
     private let toggleOffSound: NSSound?
@@ -60,7 +59,6 @@ final class TimerState {
 
     init(preferences: AppPreferences) {
         self.preferences = preferences
-        clickSound = Self.loadSound("click")
         dingSound = Self.loadSound("ding")
         toggleOnSound = Self.loadSound("toggle_on")
         toggleOffSound = Self.loadSound("toggle_off")
