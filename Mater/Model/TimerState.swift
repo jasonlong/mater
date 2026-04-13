@@ -41,7 +41,6 @@ final class TimerState {
     private var timer: Timer?
     private var windCheckTimer: Timer?
     private var windupPlayer: AVAudioPlayer?
-    private var cachedWindupData: [Int: Data] = [:]
 
     private let dingSound: NSSound?
     private let toggleOnSound: NSSound?
@@ -70,14 +69,9 @@ final class TimerState {
     }
 
     private func prewarmAudio() {
-        let work = workMinutes
-        let brk = breakMinutes
+        // Force tick sample loading off the main thread
         Task.detached(priority: .userInitiated) {
-            // Pre-generate and cache common windup sounds
-            for clicks in [work, brk, 1, 5, 10, 15, 20] {
-                let duration = max(Double(CGFloat(clicks) * TimerState.pointsPerMinute / TimerState.windSpeed), 0.25)
-                _ = WindupSoundGenerator.generate(clickCount: clicks, totalDuration: duration)
-            }
+            WindupSoundGenerator.warmUp()
         }
     }
 
@@ -453,8 +447,14 @@ final class TimerState {
     private func playWindup(clickCount: Int, duration: TimeInterval) {
         guard soundEnabled else { return }
         windupPlayer?.stop()
-        windupPlayer = WindupSoundGenerator.generate(clickCount: clickCount, totalDuration: duration)
-        windupPlayer?.play()
+        windupPlayer = nil
+        Task.detached(priority: .userInitiated) {
+            let player = WindupSoundGenerator.generate(clickCount: clickCount, totalDuration: duration)
+            await MainActor.run { [weak self] in
+                self?.windupPlayer = player
+                self?.windupPlayer?.play()
+            }
+        }
     }
 
     private func playSound(_ sound: NSSound?) {

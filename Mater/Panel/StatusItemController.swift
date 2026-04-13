@@ -9,6 +9,7 @@ final class StatusItemController: NSObject {
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
     private var iconCache: [String: NSImage] = [:]
+    private lazy var contextMenu: NSMenu = buildContextMenu()
     private var lastIconName: String = ""
     private let showSettings: () -> Void
 
@@ -69,9 +70,8 @@ final class StatusItemController: NSObject {
 
     private func showContextMenu() {
         guard let button = statusItem.button else { return }
-        let menu = buildContextMenu()
         let menuOrigin = NSPoint(x: 0, y: button.bounds.height + 4)
-        menu.popUp(positioning: nil, at: menuOrigin, in: button)
+        contextMenu.popUp(positioning: nil, at: menuOrigin, in: button)
     }
 
     private func buildContextMenu() -> NSMenu {

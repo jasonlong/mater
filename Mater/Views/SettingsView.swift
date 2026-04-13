@@ -178,6 +178,11 @@ private struct AboutSettingsPane: View {
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
                 .tint(.primary)
+
+                Text("Sound effects by [snd.dev](https://snd.dev)")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                    .tint(.secondary)
             }
             .frame(maxWidth: .infinity)
 

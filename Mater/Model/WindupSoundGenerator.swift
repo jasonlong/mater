@@ -2,9 +2,15 @@ import AVFoundation
 
 struct WindupSoundGenerator {
     private static let sampleRate: Double = 44100
+
+    /// Force-load tick samples from disk (call from background thread at launch)
+    static func warmUp() {
+        _ = cachedTickSamples
+    }
+
     static func generate(clickCount: Int, totalDuration: TimeInterval) -> AVAudioPlayer? {
         guard clickCount > 0, totalDuration > 0 else { return nil }
-        guard let tickSamples = loadTickSamples() else { return nil }
+        guard let tickSamples = cachedTickSamples else { return nil }
 
         let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
         let totalFrames = AVAudioFrameCount(totalDuration * sampleRate)
@@ -47,10 +53,6 @@ struct WindupSoundGenerator {
         guard let channelData = buffer.floatChannelData?[0] else { return nil }
         return Array(UnsafeBufferPointer(start: channelData, count: Int(buffer.frameLength)))
     }()
-
-    private static func loadTickSamples() -> [Float]? {
-        cachedTickSamples
-    }
 
     private static func clickTimings(count: Int, totalDuration: TimeInterval) -> [TimeInterval] {
         guard count > 1 else { return [0] }
