@@ -62,7 +62,7 @@ final class TimerState {
         dingSound = Self.loadSound("ding")
         toggleOnSound = Self.loadSound("toggle_on")
         toggleOffSound = Self.loadSound("toggle_off")
-        tickSound = Self.loadSound("tick4")
+        tickSound = Self.loadSound("tick")
         observePreferences()
         observeWake()
         prewarmAudio()

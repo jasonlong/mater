@@ -47,7 +47,7 @@ struct WindupSoundGenerator {
     }
 
     private static let cachedTickSamples: [Float]? = {
-        guard let path = Bundle.main.path(forResource: "tick4", ofType: "wav") else { return nil }
+        guard let path = Bundle.main.path(forResource: "tick", ofType: "wav") else { return nil }
         guard let file = try? AVAudioFile(forReading: URL(fileURLWithPath: path)) else { return nil }
         let frameCount = AVAudioFrameCount(file.length)
         guard let buffer = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: frameCount) else { return nil }

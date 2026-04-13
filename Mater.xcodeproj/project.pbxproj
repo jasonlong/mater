@@ -26,9 +26,6 @@
 		BB0000000000000000000013 /* toggle_on.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000013 /* toggle_on.wav */; };
 		BB0000000000000000000014 /* toggle_off.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000014 /* toggle_off.wav */; };
 		BB0000000000000000000015 /* tick.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000015 /* tick.wav */; };
-		BB0000000000000000000017 /* tick3.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000017 /* tick3.wav */; };
-		BB0000000000000000000018 /* tick4.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000018 /* tick4.wav */; };
-		BB0000000000000000000016 /* tick2.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000016 /* tick2.wav */; };
 		BB0000000000000000000020 /* TimerStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000020 /* TimerStateTests.swift */; };
 /* End PBXBuildFile section */
 
@@ -65,9 +62,6 @@
 		AA0000000000000000000013 /* toggle_on.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = toggle_on.wav; sourceTree = "<group>"; };
 		AA0000000000000000000014 /* toggle_off.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = toggle_off.wav; sourceTree = "<group>"; };
 		AA0000000000000000000015 /* tick.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = tick.wav; sourceTree = "<group>"; };
-		AA0000000000000000000017 /* tick3.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = tick3.wav; sourceTree = "<group>"; };
-		AA0000000000000000000018 /* tick4.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = tick4.wav; sourceTree = "<group>"; };
-		AA0000000000000000000016 /* tick2.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = tick2.wav; sourceTree = "<group>"; };
 		AA0000000000000000000020 /* TimerStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerStateTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* MaterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MaterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -163,9 +157,6 @@
 				AA0000000000000000000013 /* toggle_on.wav */,
 				AA0000000000000000000014 /* toggle_off.wav */,
 				AA0000000000000000000015 /* tick.wav */,
-				AA0000000000000000000016 /* tick2.wav */,
-				AA0000000000000000000017 /* tick3.wav */,
-				AA0000000000000000000018 /* tick4.wav */,
 			);
 			path = Sounds;
 			sourceTree = "<group>";
@@ -274,9 +265,6 @@
 				BB0000000000000000000013 /* toggle_on.wav in Resources */,
 				BB0000000000000000000014 /* toggle_off.wav in Resources */,
 				BB0000000000000000000015 /* tick.wav in Resources */,
-				BB0000000000000000000016 /* tick2.wav in Resources */,
-				BB0000000000000000000017 /* tick3.wav in Resources */,
-				BB0000000000000000000018 /* tick4.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
