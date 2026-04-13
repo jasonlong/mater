@@ -226,3 +226,45 @@ jobs:
         if: always()
         run: |
           security delete-keychain "$KEYCHAIN_PATH" || true
+
+  update-homebrew:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Update Homebrew cask
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          URL="https://github.com/jasonlong/mater/releases/download/v${VERSION}/Mater-v${VERSION}-macos.zip"
+          SHA256=$(curl -sL "$URL" | shasum -a 256 | awk '{print $1}')
+
+          git clone https://x-access-token:${TAP_TOKEN}@github.com/jasonlong/homebrew-tap.git tap
+          cd tap
+
+          cat > Casks/mater.rb << CASK
+          cask "mater" do
+            version "${VERSION}"
+            sha256 "${SHA256}"
+
+            url "https://github.com/jasonlong/mater/releases/download/v#{version}/Mater-v#{version}-macos.zip"
+            name "Mater"
+            desc "Pomodoro timer in the macOS menu bar"
+            homepage "https://github.com/jasonlong/mater"
+
+            depends_on macos: ">= :sonoma"
+
+            app "Mater.app"
+
+            zap trash: [
+              "~/Library/Preferences/com.jasonlong.mater.plist",
+            ]
+          end
+          CASK
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/mater.rb
+          git commit -m "Update mater to ${VERSION}"
+          git push
