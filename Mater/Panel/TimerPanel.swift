@@ -42,6 +42,7 @@ final class TimerPanel: NSPanel {
     }
 
     override var canBecomeKey: Bool { true }
+    override var acceptsMouseMovedEvents: Bool { get { true } set {} }
 
     override func cancelOperation(_ sender: Any?) {
         close()

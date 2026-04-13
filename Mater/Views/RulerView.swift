@@ -63,7 +63,7 @@ struct RulerView: View {
             }
         }
         .clipped()
-        .gesture(dragGesture)
+        .highPriorityGesture(dragGesture)
     }
 
     private func currentOffset(at date: Date) -> CGFloat {

@@ -40,10 +40,13 @@ final class TimerState {
     private var timer: Timer?
     private var windCheckTimer: Timer?
     private var windupPlayer: AVAudioPlayer?
+    private var cachedWindupData: [Int: Data] = [:]
 
     private let clickSound: NSSound?
     private let dingSound: NSSound?
-    private var tickPlayer: AVAudioPlayer?
+    private let toggleOnSound: NSSound?
+    private let toggleOffSound: NSSound?
+    private let tickSound: NSSound?
 
     let preferences: AppPreferences
     private var workMinutes: Int { preferences.workMinutes }
@@ -59,9 +62,24 @@ final class TimerState {
         self.preferences = preferences
         clickSound = Self.loadSound("click")
         dingSound = Self.loadSound("ding")
-        tickPlayer = WindupSoundGenerator.generate(clickCount: 1, totalDuration: 0.02)
+        toggleOnSound = Self.loadSound("toggle_on")
+        toggleOffSound = Self.loadSound("toggle_off")
+        tickSound = Self.loadSound("tick4")
         observePreferences()
         observeWake()
+        prewarmAudio()
+    }
+
+    private func prewarmAudio() {
+        let work = workMinutes
+        let brk = breakMinutes
+        Task.detached(priority: .userInitiated) {
+            // Pre-generate and cache common windup sounds
+            for clicks in [work, brk, 1, 5, 10, 15, 20] {
+                let duration = max(Double(CGFloat(clicks) * TimerState.pointsPerMinute / TimerState.windSpeed), 0.25)
+                _ = WindupSoundGenerator.generate(clickCount: clicks, totalDuration: duration)
+            }
+        }
     }
 
     private func observeWake() {
@@ -283,10 +301,7 @@ final class TimerState {
     }
 
     private func playTick() {
-        guard soundEnabled else { return }
-        tickPlayer?.stop()
-        tickPlayer?.currentTime = 0
-        tickPlayer?.play()
+        playSound(tickSound)
     }
 
     func start() {
@@ -299,7 +314,7 @@ final class TimerState {
     }
 
     func stop() {
-        playSound(clickSound)
+        playSound(toggleOffSound)
         windupPlayer?.stop()
 
         if isWinding {
@@ -331,6 +346,7 @@ final class TimerState {
 
     func resume() {
         guard frozenSliderOffset >= Self.pointsPerMinute else { return }
+        playSound(toggleOnSound)
         let exactSeconds = Double(frozenSliderOffset) / Double(Self.pointsPerMinute) * 60.0
         mode = .working
         cycleDuration = exactSeconds
