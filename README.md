@@ -33,4 +33,4 @@ Download the latest `.zip` from [Releases](https://github.com/jasonlong/mater/re
 
 I'm a Pixar fan and Mater is awesome. ["Like Ta-mater without the ta"](https://youtu.be/MJm8vNTasMg?t=25s). Get it?
 
-![mater](https://cloud.githubusercontent.com/assets/6104/20083476/8dcb077e-a52a-11e6-962f-828c437f6011.jpg)
+<img src="mater-truck.png" width="100" alt="Mater truck">
