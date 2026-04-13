@@ -74,9 +74,13 @@ jobs:
             -T /usr/bin/security \
             -T /usr/bin/xcrun
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security list-keychains -d user -s "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
           security default-keychain -d user -s "$KEYCHAIN_PATH"
           echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> "$GITHUB_ENV"
+
+      - name: Verify certificate
+        run: |
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 
       - name: Create export options plist
         env:
