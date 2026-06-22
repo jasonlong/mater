@@ -3,6 +3,9 @@ import AppKit
 import AVFoundation
 @testable import Mater
 
+private let workMinutesPreferenceKey = "AppPreferences.workMinutes"
+private let breakMinutesPreferenceKey = "AppPreferences.breakMinutes"
+
 @MainActor
 private func makePrefs() -> AppPreferences {
     AppPreferences(defaults: UserDefaults(suiteName: UUID().uuidString)!)
@@ -173,6 +176,43 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         prefs.soundEnabled = false
         let prefs2 = AppPreferences(defaults: defaults)
         #expect(prefs2.soundEnabled == false)
+    }
+
+    @Test func persistedHighDurationsClampToUpperBounds() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        defaults.set(999, forKey: workMinutesPreferenceKey)
+        defaults.set(999, forKey: breakMinutesPreferenceKey)
+
+        let prefs = AppPreferences(defaults: defaults)
+
+        #expect(prefs.workMinutes == AppPreferences.workRange.upperBound)
+        #expect(prefs.breakMinutes == AppPreferences.breakRange.upperBound)
+    }
+
+    @Test func persistedLowDurationsClampToLowerBounds() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        defaults.set(-10, forKey: workMinutesPreferenceKey)
+        defaults.set(0, forKey: breakMinutesPreferenceKey)
+
+        let prefs = AppPreferences(defaults: defaults)
+
+        #expect(prefs.workMinutes == AppPreferences.workRange.lowerBound)
+        #expect(prefs.breakMinutes == AppPreferences.breakRange.lowerBound)
+    }
+
+    @Test func assignedDurationsClampAndPersist() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let prefs = AppPreferences(defaults: defaults)
+
+        prefs.workMinutes = 999
+        prefs.breakMinutes = -5
+
+        #expect(prefs.workMinutes == AppPreferences.workRange.upperBound)
+        #expect(prefs.breakMinutes == AppPreferences.breakRange.lowerBound)
+
+        let persistedPrefs = AppPreferences(defaults: defaults)
+        #expect(persistedPrefs.workMinutes == AppPreferences.workRange.upperBound)
+        #expect(persistedPrefs.breakMinutes == AppPreferences.breakRange.lowerBound)
     }
 }
 
