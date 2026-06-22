@@ -1,5 +1,6 @@
 import Testing
 import AppKit
+import AVFoundation
 @testable import Mater
 
 @MainActor
@@ -48,17 +49,83 @@ private final class ManualTimerStateScheduler: TimerStateScheduling {
 }
 
 @MainActor
+private final class AsyncGate: @unchecked Sendable {
+    private var isOpen = false
+    private var hasWaiter = false
+    private var waitContinuation: CheckedContinuation<Void, Never>?
+    private var waiterContinuation: CheckedContinuation<Void, Never>?
+
+    func wait() async {
+        hasWaiter = true
+        waiterContinuation?.resume()
+        waiterContinuation = nil
+
+        if isOpen { return }
+
+        await withCheckedContinuation { continuation in
+            if isOpen {
+                continuation.resume()
+            } else {
+                waitContinuation = continuation
+            }
+        }
+    }
+
+    func waitForWaiter() async {
+        if hasWaiter || isOpen { return }
+
+        await withCheckedContinuation { continuation in
+            waiterContinuation = continuation
+        }
+    }
+
+    func open() {
+        isOpen = true
+        waitContinuation?.resume()
+        waitContinuation = nil
+        waiterContinuation?.resume()
+        waiterContinuation = nil
+    }
+}
+
+@MainActor
+private final class GatedWindupPlayerFactory: @unchecked Sendable {
+    private let gates: [AsyncGate]
+    private var nextGateIndex = 0
+
+    init(_ gates: [AsyncGate]) {
+        self.gates = gates
+    }
+
+    func makePlayer(clickCount _: Int, duration _: TimeInterval) async -> AVAudioPlayer? {
+        let gate = gates[min(nextGateIndex, gates.count - 1)]
+        nextGateIndex += 1
+        await gate.wait()
+        return WindupSoundGenerator.generate(clickCount: 1, totalDuration: 0.05)
+    }
+}
+
+@MainActor
 private func makeTimerState(
     workMinutes: Int = 25,
     breakMinutes: Int = 5,
-    scheduler: TimerStateScheduling? = nil
+    scheduler: TimerStateScheduling? = nil,
+    makeWindupPlayer: WindupPlayerFactory? = nil
 ) -> TimerState {
     let prefs = makePrefs()
     prefs.workMinutes = workMinutes
     prefs.breakMinutes = breakMinutes
     let state: TimerState
-    if let scheduler {
+    if let scheduler, let makeWindupPlayer {
+        state = TimerState(preferences: prefs, scheduler: scheduler, makeWindupPlayer: makeWindupPlayer)
+    } else if let scheduler {
         state = TimerState(preferences: prefs, scheduler: scheduler)
+    } else if let makeWindupPlayer {
+        state = TimerState(
+            preferences: prefs,
+            scheduler: SystemTimerStateScheduler(),
+            makeWindupPlayer: makeWindupPlayer
+        )
     } else {
         state = TimerState(preferences: prefs)
     }
@@ -274,6 +341,89 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(state.mode == .working)
         #expect(state.cycleStartDate == scheduler.now)
         state.stop()
+    }
+}
+
+// MARK: - Windup Audio Cancellation
+
+@MainActor
+@Suite struct WindupAudioCancellationTests {
+    @Test func stoppingBeforeWindupAudioFinishesPreventsPlayerInstall() async {
+        let scheduler = ManualTimerStateScheduler()
+        let gate = AsyncGate()
+        let factory = GatedWindupPlayerFactory([gate])
+        let state = makeTimerState(
+            scheduler: scheduler,
+            makeWindupPlayer: { clickCount, duration in
+                await factory.makePlayer(clickCount: clickCount, duration: duration)
+            }
+        )
+        state.soundEnabled = true
+
+        state.start()
+        await gate.waitForWaiter()
+        state.stop()
+        gate.open()
+        await yieldToWindupTasks()
+
+        #expect(state.windupPlayer == nil)
+        #expect(state.isWinding == false)
+    }
+
+    @Test func disablingSoundBeforeWindupAudioFinishesPreventsPlayerInstall() async {
+        let scheduler = ManualTimerStateScheduler()
+        let gate = AsyncGate()
+        let factory = GatedWindupPlayerFactory([gate])
+        let state = makeTimerState(
+            scheduler: scheduler,
+            makeWindupPlayer: { clickCount, duration in
+                await factory.makePlayer(clickCount: clickCount, duration: duration)
+            }
+        )
+        state.soundEnabled = true
+
+        state.start()
+        await gate.waitForWaiter()
+        state.soundEnabled = false
+        gate.open()
+        await yieldToWindupTasks()
+
+        #expect(state.windupPlayer == nil)
+        state.stop()
+    }
+
+    @Test func supersededWindupIgnoresFirstLateResult() async {
+        let scheduler = ManualTimerStateScheduler()
+        let firstGate = AsyncGate()
+        let secondGate = AsyncGate()
+        let factory = GatedWindupPlayerFactory([firstGate, secondGate])
+        let state = makeTimerState(
+            scheduler: scheduler,
+            makeWindupPlayer: { clickCount, duration in
+                await factory.makePlayer(clickCount: clickCount, duration: duration)
+            }
+        )
+        state.soundEnabled = true
+
+        state.start()
+        await firstGate.waitForWaiter()
+        state.start()
+        await secondGate.waitForWaiter()
+
+        firstGate.open()
+        await yieldToWindupTasks()
+        #expect(state.windupPlayer == nil)
+
+        secondGate.open()
+        await yieldToWindupTasks()
+        #expect(state.windupPlayer != nil)
+        state.stop()
+    }
+
+    private func yieldToWindupTasks() async {
+        for _ in 0..<50 {
+            await Task.yield()
+        }
     }
 
     @Test func stoppingDuringCompletionDelayPreventsNextCycle() {
