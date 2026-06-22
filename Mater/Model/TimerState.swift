@@ -158,9 +158,9 @@ final class TimerState {
     }
 
     private func prewarmAudio() {
-        // Force tick sample loading off the main thread
+        // Force tick sample and Core Audio setup off the main thread.
         Task.detached(priority: .userInitiated) {
-            WindupSoundGenerator.warmUp()
+            WindupSoundGenerator.warmUpPlayback()
         }
     }
 

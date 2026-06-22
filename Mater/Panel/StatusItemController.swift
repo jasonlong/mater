@@ -21,11 +21,12 @@ final class StatusItemController: NSObject {
         super.init()
 
         if let button = statusItem.button {
-            button.image = Self.makeIcon(named: "icon-stopped")
+            button.image = cachedIcon(named: "icon-stopped")
             button.action = #selector(handleClick)
             button.target = self
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
+        prewarmLikelyIcons()
 
         timerState.onCycleComplete = { [weak self] in
             self?.showPanel()
@@ -113,12 +114,22 @@ final class StatusItemController: NSObject {
         let name = timerState.iconName
         guard name != lastIconName else { return }
         lastIconName = name
+        button.image = cachedIcon(named: name)
+    }
+
+    private func prewarmLikelyIcons() {
+        _ = cachedIcon(named: "icon-\(timerState.preferences.workMinutes)")
+        _ = cachedIcon(named: "icon-\(timerState.preferences.breakMinutes)-break")
+    }
+
+    private func cachedIcon(named name: String) -> NSImage? {
         if let cached = iconCache[name] {
-            button.image = cached
-        } else if let icon = Self.makeIcon(named: name) {
-            iconCache[name] = icon
-            button.image = icon
+            return cached
         }
+        guard let icon = Self.makeIcon(named: name) else { return nil }
+        Self.forceRender(icon)
+        iconCache[name] = icon
+        return icon
     }
 
     private func setupOutsideClickMonitors() {
@@ -169,6 +180,11 @@ final class StatusItemController: NSObject {
         }
         let minute = name.replacingOccurrences(of: "icon-", with: "")
         return IconGenerator.generate(text: minute, style: .filled)
+    }
+
+    private static func forceRender(_ image: NSImage) {
+        var proposedRect = NSRect(origin: .zero, size: image.size)
+        _ = image.cgImage(forProposedRect: &proposedRect, context: nil, hints: nil)
     }
 
     static func panelOrigin(buttonRect: CGRect, panelSize: CGSize) -> CGPoint {

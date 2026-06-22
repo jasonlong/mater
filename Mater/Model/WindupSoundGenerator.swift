@@ -8,6 +8,13 @@ struct WindupSoundGenerator {
         _ = cachedTickSamples
     }
 
+    /// Prepare a tiny player so the first visible wind-up does not pay Core Audio setup costs.
+    static func warmUpPlayback() {
+        warmUp()
+        let player = generate(clickCount: 1, totalDuration: 0.25)
+        player?.prepareToPlay()
+    }
+
     static func generate(clickCount: Int, totalDuration: TimeInterval) -> AVAudioPlayer? {
         guard clickCount > 0, totalDuration > 0 else { return nil }
         guard let tickSamples = cachedTickSamples else { return nil }
