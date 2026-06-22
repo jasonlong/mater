@@ -8,6 +8,63 @@ enum TimerMode: Equatable {
     case breaking
 }
 
+@MainActor
+protocol TimerStateScheduledTask: AnyObject {
+    func cancel()
+}
+
+@MainActor
+protocol TimerStateScheduling: AnyObject {
+    var now: Date { get }
+
+    @discardableResult
+    func schedule(after interval: TimeInterval, _ action: @escaping @MainActor () -> Void) -> TimerStateScheduledTask
+
+    @discardableResult
+    func scheduleRepeating(every interval: TimeInterval, _ action: @escaping @MainActor () -> Void) -> TimerStateScheduledTask
+}
+
+@MainActor
+private final class ClosureTimerStateScheduledTask: TimerStateScheduledTask {
+    private var cancellation: (() -> Void)?
+
+    init(cancellation: @escaping () -> Void) {
+        self.cancellation = cancellation
+    }
+
+    func cancel() {
+        cancellation?()
+        cancellation = nil
+    }
+}
+
+final class SystemTimerStateScheduler: TimerStateScheduling {
+    var now: Date { Date() }
+
+    func schedule(after interval: TimeInterval, _ action: @escaping @MainActor () -> Void) -> TimerStateScheduledTask {
+        let workItem = DispatchWorkItem {
+            Task { @MainActor in
+                action()
+            }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + interval, execute: workItem)
+        return ClosureTimerStateScheduledTask {
+            workItem.cancel()
+        }
+    }
+
+    func scheduleRepeating(every interval: TimeInterval, _ action: @escaping @MainActor () -> Void) -> TimerStateScheduledTask {
+        let timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+            Task { @MainActor in
+                action()
+            }
+        }
+        return ClosureTimerStateScheduledTask {
+            timer.invalidate()
+        }
+    }
+}
+
 @MainActor @Observable
 final class TimerState {
     static let pointsPerMinute: CGFloat = 20
@@ -38,8 +95,8 @@ final class TimerState {
     private(set) var windFromOffset: CGFloat = 0
     private(set) var windToOffset: CGFloat = 0
 
-    private var timer: Timer?
-    private var windCheckTimer: Timer?
+    private var timerTask: TimerStateScheduledTask?
+    private var windCheckTask: TimerStateScheduledTask?
     private var windupPlayer: AVAudioPlayer?
 
     private let dingSound: NSSound?
@@ -48,6 +105,7 @@ final class TimerState {
     private let tickSound: NSSound?
 
     let preferences: AppPreferences
+    private let scheduler: TimerStateScheduling
     private var workMinutes: Int { preferences.workMinutes }
     private var breakMinutes: Int { preferences.breakMinutes }
     private static let windSpeed: CGFloat = 500
@@ -57,8 +115,13 @@ final class TimerState {
     }
     private var maxWorkOffset: CGFloat { CGFloat(workMinutes) * Self.pointsPerMinute }
 
-    init(preferences: AppPreferences) {
+    convenience init(preferences: AppPreferences) {
+        self.init(preferences: preferences, scheduler: SystemTimerStateScheduler())
+    }
+
+    init(preferences: AppPreferences, scheduler: TimerStateScheduling) {
         self.preferences = preferences
+        self.scheduler = scheduler
         dingSound = Self.loadSound("ding")
         toggleOnSound = Self.loadSound("toggle_on")
         toggleOffSound = Self.loadSound("toggle_off")
@@ -91,7 +154,7 @@ final class TimerState {
         guard mode == .working || mode == .breaking,
               let startDate = cycleStartDate else { return }
 
-        let elapsed = Date().timeIntervalSince(startDate)
+        let elapsed = scheduler.now.timeIntervalSince(startDate)
         let remaining = cycleDuration - elapsed
 
         if remaining <= 0 {
@@ -126,7 +189,7 @@ final class TimerState {
             let minutes = minuteFromOffset(frozenSliderOffset)
             remainingSeconds = minutes * 60
         } else if mode == .working, let startDate = cycleStartDate {
-            let elapsed = Date().timeIntervalSince(startDate)
+            let elapsed = scheduler.now.timeIntervalSince(startDate)
             let newDuration = TimeInterval(newMax * 60)
             if elapsed >= newDuration {
                 stop()
@@ -185,14 +248,14 @@ final class TimerState {
             isMomentum = false
             momentumLastUpdate = nil
         } else if isWinding {
-            frozenSliderOffset = windingSliderOffset(at: Date())
+            frozenSliderOffset = windingSliderOffset(at: scheduler.now)
             cancelWind()
         } else if mode != .stopped {
-            frozenSliderOffset = continuousSliderOffset(at: Date())
+            frozenSliderOffset = continuousSliderOffset(at: scheduler.now)
         }
 
-        timer?.invalidate()
-        timer = nil
+        timerTask?.cancel()
+        timerTask = nil
         windupPlayer?.stop()
         cycleStartDate = nil
         cycleDuration = 0
@@ -224,7 +287,7 @@ final class TimerState {
         if abs(velocity) > 30 {
             isMomentum = true
             momentumVelocity = velocity
-            momentumLastUpdate = Date()
+            momentumLastUpdate = scheduler.now
             return
         }
 
@@ -295,7 +358,7 @@ final class TimerState {
         let seconds = minutes * 60
         mode = newMode
         cycleDuration = TimeInterval(seconds)
-        cycleStartDate = Date()
+        cycleStartDate = scheduler.now
         remainingSeconds = seconds
         startTimer()
     }
@@ -318,14 +381,14 @@ final class TimerState {
         windupPlayer?.stop()
 
         if isWinding {
-            frozenSliderOffset = windingSliderOffset(at: Date())
+            frozenSliderOffset = windingSliderOffset(at: scheduler.now)
             cancelWind()
         } else {
-            frozenSliderOffset = continuousSliderOffset(at: Date())
+            frozenSliderOffset = continuousSliderOffset(at: scheduler.now)
         }
 
-        timer?.invalidate()
-        timer = nil
+        timerTask?.cancel()
+        timerTask = nil
         pausedMode = mode == .stopped ? .working : mode
         mode = .stopped
         remainingSeconds = 0
@@ -351,7 +414,7 @@ final class TimerState {
         let exactSeconds = Double(frozenSliderOffset) / Double(Self.pointsPerMinute) * 60.0
         mode = pausedMode
         cycleDuration = exactSeconds
-        cycleStartDate = Date()
+        cycleStartDate = scheduler.now
         remainingSeconds = Int(ceil(exactSeconds))
         startTimer()
     }
@@ -369,20 +432,18 @@ final class TimerState {
         windFromOffset = from
         windToOffset = target
         windDuration = duration
-        windStartDate = Date()
+        windStartDate = scheduler.now
 
-        windCheckTimer?.invalidate()
-        windCheckTimer = Timer.scheduledTimer(withTimeInterval: duration, repeats: false) { _ in
-            Task { @MainActor in
-                completion()
-            }
+        windCheckTask?.cancel()
+        windCheckTask = scheduler.schedule(after: duration) {
+            completion()
         }
     }
 
     private func cancelWind() {
         isWinding = false
-        windCheckTimer?.invalidate()
-        windCheckTimer = nil
+        windCheckTask?.cancel()
+        windCheckTask = nil
     }
 
     private func finishWindAndBeginCycle(_ newMode: TimerMode) {
@@ -392,17 +453,15 @@ final class TimerState {
     }
 
     private func startTimer() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.tick()
-            }
+        timerTask?.cancel()
+        timerTask = scheduler.scheduleRepeating(every: 1.0) { [weak self] in
+            self?.tick()
         }
     }
 
     private func tick() {
         guard let startDate = cycleStartDate else { return }
-        let elapsed = Date().timeIntervalSince(startDate)
+        let elapsed = scheduler.now.timeIntervalSince(startDate)
         let remaining = Int(ceil(cycleDuration - elapsed))
 
         if remaining <= 0 {
@@ -414,8 +473,8 @@ final class TimerState {
     }
 
     private func cycleComplete() {
-        timer?.invalidate()
-        timer = nil
+        timerTask?.cancel()
+        timerTask = nil
         cycleStartDate = nil
         cycleDuration = 0
         playSound(dingSound)
@@ -425,7 +484,7 @@ final class TimerState {
         let nextMinutes = minutes(for: nextMode)
         let targetOffset = CGFloat(nextMinutes) * Self.pointsPerMinute
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+        scheduler.schedule(after: 2.0) { [weak self] in
             guard let self else { return }
             self.mode = nextMode
             self.beginWindAnimation(from: 0, to: targetOffset, clickCount: max(nextMinutes, 1)) { [weak self] in
@@ -438,7 +497,7 @@ final class TimerState {
         let minutes = minutes(for: newMode)
         mode = newMode
         cycleDuration = TimeInterval(minutes * 60)
-        cycleStartDate = Date()
+        cycleStartDate = scheduler.now
         remainingSeconds = minutes * 60
         frozenSliderOffset = 0
         startTimer()
