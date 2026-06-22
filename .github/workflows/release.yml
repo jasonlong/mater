@@ -5,6 +5,11 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without leading v, for example 3.0.1"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -17,13 +22,16 @@ jobs:
   build-and-release:
     runs-on: macos-26
     timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
     env:
       APP_PATH: /tmp/mater-export/Mater.app
       XCARCHIVE_PATH: /tmp/Mater.xcarchive
       EXPORT_PATH: /tmp/mater-export
       EXPORT_OPTIONS_PLIST: /tmp/MaterExportOptions.plist
-      ARCHIVE_PATH: /tmp/Mater-${{ github.ref_name }}-unsigned.zip
-      FINAL_ARCHIVE_PATH: Mater-${{ github.ref_name }}-macos.zip
+      ARCHIVE_PATH: /tmp/Mater-unsigned.zip
+      FINAL_ARCHIVE_PATH: Mater-release-macos.zip
       KEYCHAIN_PATH: /tmp/mater-build.keychain-db
       KEYCHAIN_PROFILE: mater-notary
 
@@ -37,9 +45,42 @@ jobs:
         run: xcodebuild -version
 
       - name: Resolve release version
+        id: version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          echo "RELEASE_MARKETING_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          set -euo pipefail
+
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            case "${GITHUB_REF_NAME}" in
+              v*) VERSION="${GITHUB_REF_NAME#v}" ;;
+              *) echo "Tag releases must use a v-prefixed tag, got ${GITHUB_REF_NAME}" >&2; exit 1 ;;
+            esac
+          else
+            VERSION="${INPUT_VERSION}"
+            case "${VERSION}" in
+              v*) echo "Manual release version must not include a leading v" >&2; exit 1 ;;
+            esac
+          fi
+
+          if ! [[ "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]]; then
+            echo "Invalid release version: ${VERSION}" >&2
+            exit 1
+          fi
+
+          echo "RELEASE_MARKETING_VERSION=${VERSION}" >> "$GITHUB_ENV"
           echo "RELEASE_BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=v${VERSION}" >> "$GITHUB_ENV"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve release artifact path
+        id: artifact
+        run: |
+          ARTIFACT_PATH="Mater-${RELEASE_TAG}-macos.zip"
+          echo "FINAL_ARCHIVE_PATH=${ARTIFACT_PATH}" >> "$GITHUB_ENV"
+          echo "path=${ARTIFACT_PATH}" >> "$GITHUB_OUTPUT"
 
       - name: Run test suite
         run: |
@@ -213,7 +254,8 @@ jobs:
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.FINAL_ARCHIVE_PATH }}
+          tag_name: ${{ steps.version.outputs.tag }}
+          files: ${{ steps.artifact.outputs.path }}
           generate_release_notes: true
           body: |
             ## Installation
@@ -231,14 +273,24 @@ jobs:
     needs: build-and-release
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      RELEASE_VERSION: ${{ needs.build-and-release.outputs.version }}
+      RELEASE_TAG: ${{ needs.build-and-release.outputs.tag }}
     steps:
       - name: Update Homebrew cask
         env:
           TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          URL="https://github.com/jasonlong/mater/releases/download/v${VERSION}/Mater-v${VERSION}-macos.zip"
-          SHA256=$(curl -sL "$URL" | shasum -a 256 | awk '{print $1}')
+          set -euo pipefail
+
+          test -n "${TAP_TOKEN}"
+          test -n "${RELEASE_VERSION}"
+          test -n "${RELEASE_TAG}"
+
+          VERSION="${RELEASE_VERSION}"
+          URL="https://github.com/jasonlong/mater/releases/download/${RELEASE_TAG}/Mater-${RELEASE_TAG}-macos.zip"
+          SHA256=$(curl --fail --location --silent --show-error "$URL" | shasum -a 256 | awk '{print $1}')
+          test -n "${SHA256}"
 
           git clone https://x-access-token:${TAP_TOKEN}@github.com/jasonlong/homebrew-tap.git tap
           cd tap
