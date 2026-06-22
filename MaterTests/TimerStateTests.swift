@@ -8,11 +8,60 @@ private func makePrefs() -> AppPreferences {
 }
 
 @MainActor
-private func makeTimerState(workMinutes: Int = 25, breakMinutes: Int = 5) -> TimerState {
+private final class ManualScheduledTask: TimerStateScheduledTask {
+    let interval: TimeInterval
+    let action: @MainActor () -> Void
+    private(set) var isCancelled = false
+
+    init(interval: TimeInterval, action: @escaping @MainActor () -> Void) {
+        self.interval = interval
+        self.action = action
+    }
+
+    func cancel() {
+        isCancelled = true
+    }
+
+    func fire() {
+        guard !isCancelled else { return }
+        action()
+    }
+}
+
+@MainActor
+private final class ManualTimerStateScheduler: TimerStateScheduling {
+    var now = Date(timeIntervalSince1970: 1_000)
+    private(set) var delayedTasks: [ManualScheduledTask] = []
+    private(set) var repeatingTasks: [ManualScheduledTask] = []
+
+    func schedule(after interval: TimeInterval, _ action: @escaping @MainActor () -> Void) -> TimerStateScheduledTask {
+        let task = ManualScheduledTask(interval: interval, action: action)
+        delayedTasks.append(task)
+        return task
+    }
+
+    func scheduleRepeating(every interval: TimeInterval, _ action: @escaping @MainActor () -> Void) -> TimerStateScheduledTask {
+        let task = ManualScheduledTask(interval: interval, action: action)
+        repeatingTasks.append(task)
+        return task
+    }
+}
+
+@MainActor
+private func makeTimerState(
+    workMinutes: Int = 25,
+    breakMinutes: Int = 5,
+    scheduler: TimerStateScheduling? = nil
+) -> TimerState {
     let prefs = makePrefs()
     prefs.workMinutes = workMinutes
     prefs.breakMinutes = breakMinutes
-    let state = TimerState(preferences: prefs)
+    let state: TimerState
+    if let scheduler {
+        state = TimerState(preferences: prefs, scheduler: scheduler)
+    } else {
+        state = TimerState(preferences: prefs)
+    }
     state.soundEnabled = false
     return state
 }
@@ -169,7 +218,118 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(state.soundEnabled == false)
         #expect(prefs.soundEnabled == false)
     }
+}
 
+// MARK: - Timer Scheduling
+
+@MainActor
+@Suite struct TimerSchedulingTests {
+    @Test func repeatingTickUpdatesRemainingTimeWithoutSleeping() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(scheduler: scheduler)
+
+        startCycleViaDrag(state)
+        #expect(scheduler.repeatingTasks.count == 1)
+
+        scheduler.now = scheduler.now.addingTimeInterval(61)
+        scheduler.repeatingTasks[0].fire()
+
+        #expect(state.remainingSeconds == 1439)
+        state.stop()
+    }
+
+    @Test func cycleCompletionSchedulesDelayedNextCycleWindup() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+
+        startCycleViaDrag(state, minutes: 1)
+        scheduler.now = scheduler.now.addingTimeInterval(60)
+        scheduler.repeatingTasks[0].fire()
+
+        #expect(state.remainingSeconds == 0)
+        #expect(state.cycleStartDate == nil)
+        #expect(scheduler.delayedTasks.count == 1)
+        #expect(scheduler.delayedTasks[0].interval == 2.0)
+
+        scheduler.delayedTasks[0].fire()
+
+        #expect(state.mode == .breaking)
+        #expect(state.isWinding == true)
+        state.stop()
+    }
+
+    @Test func windCompletionCanBeFiredDeterministically() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(scheduler: scheduler)
+
+        state.start()
+
+        #expect(state.isWinding == true)
+        #expect(scheduler.delayedTasks.count == 1)
+        #expect(scheduler.delayedTasks[0].interval == state.windDuration)
+
+        scheduler.delayedTasks[0].fire()
+
+        #expect(state.isWinding == false)
+        #expect(state.mode == .working)
+        #expect(state.cycleStartDate == scheduler.now)
+        state.stop()
+    }
+
+    @Test func stoppingDuringCompletionDelayPreventsNextCycle() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+        let transition = completeOneMinuteCycle(state, scheduler: scheduler)
+
+        state.stop()
+        transition.fire()
+
+        #expect(state.mode == .stopped)
+        #expect(state.isWinding == false)
+        #expect(state.cycleStartDate == nil)
+        #expect(state.remainingSeconds == 0)
+    }
+
+    @Test func draggingDuringCompletionDelayPreventsQueuedNextCycle() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 3, breakMinutes: 1, scheduler: scheduler)
+        let transition = completeOneMinuteCycle(state, scheduler: scheduler)
+
+        state.dragBegan()
+        state.dragChanged(offset: TimerState.pointsPerMinute * 3)
+        state.dragEnded(velocity: 0)
+        transition.fire()
+
+        #expect(state.mode == .working)
+        #expect(state.remainingSeconds == 180)
+        #expect(state.isWinding == false)
+        state.stop()
+    }
+
+    @Test func normalDelayedTransitionStillWorks() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+        let transition = completeOneMinuteCycle(state, scheduler: scheduler)
+
+        transition.fire()
+
+        #expect(state.mode == .breaking)
+        #expect(state.isWinding == true)
+        state.stop()
+    }
+
+    private func completeOneMinuteCycle(
+        _ state: TimerState,
+        scheduler: ManualTimerStateScheduler
+    ) -> ManualScheduledTask {
+        startCycleViaDrag(state, minutes: 1)
+        scheduler.now = scheduler.now.addingTimeInterval(60)
+        scheduler.repeatingTasks[0].fire()
+
+        #expect(state.remainingSeconds == 0)
+        #expect(scheduler.delayedTasks.count == 1)
+        return scheduler.delayedTasks[0]
+    }
 }
 
 // MARK: - Toggle and Resume
