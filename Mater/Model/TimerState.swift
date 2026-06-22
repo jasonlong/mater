@@ -65,6 +65,8 @@ final class SystemTimerStateScheduler: TimerStateScheduling {
     }
 }
 
+typealias WindupPlayerFactory = @Sendable (_ clickCount: Int, _ duration: TimeInterval) async -> AVAudioPlayer?
+
 @MainActor @Observable
 final class TimerState {
     static let pointsPerMinute: CGFloat = 20
@@ -73,7 +75,12 @@ final class TimerState {
     private(set) var remainingSeconds: Int = 0
     var soundEnabled: Bool {
         get { preferences.soundEnabled }
-        set { preferences.soundEnabled = newValue }
+        set {
+            preferences.soundEnabled = newValue
+            if !newValue {
+                cancelWindupAudio()
+            }
+        }
     }
     var onCycleComplete: (() -> Void)?
 
@@ -97,7 +104,9 @@ final class TimerState {
 
     private var timerTask: TimerStateScheduledTask?
     private var windCheckTask: TimerStateScheduledTask?
-    private var windupPlayer: AVAudioPlayer?
+    private var windupTask: Task<Void, Never>?
+    private var windupGeneration = 0
+    private(set) var windupPlayer: AVAudioPlayer?
 
     private let dingSound: NSSound?
     private let toggleOnSound: NSSound?
@@ -106,6 +115,7 @@ final class TimerState {
 
     let preferences: AppPreferences
     private let scheduler: TimerStateScheduling
+    private let makeWindupPlayer: WindupPlayerFactory
     private var workMinutes: Int { preferences.workMinutes }
     private var breakMinutes: Int { preferences.breakMinutes }
     private static let windSpeed: CGFloat = 500
@@ -119,9 +129,24 @@ final class TimerState {
         self.init(preferences: preferences, scheduler: SystemTimerStateScheduler())
     }
 
-    init(preferences: AppPreferences, scheduler: TimerStateScheduling) {
+    convenience init(preferences: AppPreferences, scheduler: TimerStateScheduling) {
+        self.init(
+            preferences: preferences,
+            scheduler: scheduler,
+            makeWindupPlayer: { clickCount, duration in
+                WindupSoundGenerator.generate(clickCount: clickCount, totalDuration: duration)
+            }
+        )
+    }
+
+    init(
+        preferences: AppPreferences,
+        scheduler: TimerStateScheduling,
+        makeWindupPlayer: @escaping WindupPlayerFactory
+    ) {
         self.preferences = preferences
         self.scheduler = scheduler
+        self.makeWindupPlayer = makeWindupPlayer
         dingSound = Self.loadSound("ding")
         toggleOnSound = Self.loadSound("toggle_on")
         toggleOffSound = Self.loadSound("toggle_off")
@@ -256,7 +281,7 @@ final class TimerState {
 
         timerTask?.cancel()
         timerTask = nil
-        windupPlayer?.stop()
+        cancelWindupAudio()
         cycleStartDate = nil
         cycleDuration = 0
 
@@ -378,7 +403,7 @@ final class TimerState {
 
     func stop() {
         playSound(toggleOffSound)
-        windupPlayer?.stop()
+        cancelWindupAudio()
 
         if isWinding {
             frozenSliderOffset = windingSliderOffset(at: scheduler.now)
@@ -446,6 +471,14 @@ final class TimerState {
         windCheckTask = nil
     }
 
+    private func cancelWindupAudio() {
+        windupGeneration += 1
+        windupTask?.cancel()
+        windupTask = nil
+        windupPlayer?.stop()
+        windupPlayer = nil
+    }
+
     private func finishWindAndBeginCycle(_ newMode: TimerMode) {
         isWinding = false
         windStartDate = nil
@@ -504,14 +537,25 @@ final class TimerState {
     }
 
     private func playWindup(clickCount: Int, duration: TimeInterval) {
+        cancelWindupAudio()
         guard soundEnabled else { return }
-        windupPlayer?.stop()
-        windupPlayer = nil
-        Task.detached(priority: .userInitiated) {
-            let player = WindupSoundGenerator.generate(clickCount: clickCount, totalDuration: duration)
+
+        let generation = windupGeneration
+        let factory = makeWindupPlayer
+        windupTask = Task.detached(priority: .userInitiated) { [weak self] in
+            let player = await factory(clickCount, duration)
+            guard !Task.isCancelled else { return }
+
             await MainActor.run { [weak self] in
-                self?.windupPlayer = player
-                self?.windupPlayer?.play()
+                guard let self,
+                      !Task.isCancelled,
+                      self.windupGeneration == generation,
+                      self.soundEnabled
+                else { return }
+
+                self.windupPlayer = player
+                self.windupPlayer?.play()
+                self.windupTask = nil
             }
         }
     }
