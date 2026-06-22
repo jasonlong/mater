@@ -111,20 +111,17 @@ private struct SettingsTabButtonStyle: ButtonStyle {
 private struct GeneralSettingsPane: View {
     @Bindable var preferences: AppPreferences
 
-    private let workRange = 1...60
-    private let breakRange = 1...30
-
     var body: some View {
         Form {
             Section("Timer") {
                 Picker("Work duration", selection: $preferences.workMinutes) {
-                    ForEach(Array(workRange), id: \.self) { min in
+                    ForEach(Array(AppPreferences.workRange), id: \.self) { min in
                         Text("\(min) min").tag(min)
                     }
                 }
 
                 Picker("Break duration", selection: $preferences.breakMinutes) {
-                    ForEach(Array(breakRange), id: \.self) { min in
+                    ForEach(Array(AppPreferences.breakRange), id: \.self) { min in
                         Text("\(min) min").tag(min)
                     }
                 }
