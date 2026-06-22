@@ -425,6 +425,61 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
             await Task.yield()
         }
     }
+
+    @Test func stoppingDuringCompletionDelayPreventsNextCycle() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+        let transition = completeOneMinuteCycle(state, scheduler: scheduler)
+
+        state.stop()
+        transition.fire()
+
+        #expect(state.mode == .stopped)
+        #expect(state.isWinding == false)
+        #expect(state.cycleStartDate == nil)
+        #expect(state.remainingSeconds == 0)
+    }
+
+    @Test func draggingDuringCompletionDelayPreventsQueuedNextCycle() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 3, breakMinutes: 1, scheduler: scheduler)
+        let transition = completeOneMinuteCycle(state, scheduler: scheduler)
+
+        state.dragBegan()
+        state.dragChanged(offset: TimerState.pointsPerMinute * 3)
+        state.dragEnded(velocity: 0)
+        transition.fire()
+
+        #expect(state.mode == .working)
+        #expect(state.remainingSeconds == 180)
+        #expect(state.isWinding == false)
+        state.stop()
+    }
+
+    @Test func normalDelayedTransitionStillWorks() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+        let transition = completeOneMinuteCycle(state, scheduler: scheduler)
+
+        transition.fire()
+
+        #expect(state.mode == .breaking)
+        #expect(state.isWinding == true)
+        state.stop()
+    }
+
+    private func completeOneMinuteCycle(
+        _ state: TimerState,
+        scheduler: ManualTimerStateScheduler
+    ) -> ManualScheduledTask {
+        startCycleViaDrag(state, minutes: 1)
+        scheduler.now = scheduler.now.addingTimeInterval(60)
+        scheduler.repeatingTasks[0].fire()
+
+        #expect(state.remainingSeconds == 0)
+        #expect(scheduler.delayedTasks.count == 1)
+        return scheduler.delayedTasks[0]
+    }
 }
 
 // MARK: - Toggle and Resume

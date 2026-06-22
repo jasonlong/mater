@@ -104,6 +104,7 @@ final class TimerState {
 
     private var timerTask: TimerStateScheduledTask?
     private var windCheckTask: TimerStateScheduledTask?
+    private var pendingCycleTransitionTask: TimerStateScheduledTask?
     private var windupTask: Task<Void, Never>?
     private var windupGeneration = 0
     private(set) var windupPlayer: AVAudioPlayer?
@@ -269,6 +270,8 @@ final class TimerState {
     }
 
     func dragBegan() {
+        cancelPendingCycleTransition()
+
         if isMomentum {
             isMomentum = false
             momentumLastUpdate = nil
@@ -393,6 +396,8 @@ final class TimerState {
     }
 
     func start() {
+        cancelPendingCycleTransition()
+
         let targetOffset = maxWorkOffset
         let distance = abs(targetOffset - frozenSliderOffset)
         let clickCount = max(Int(round(distance / Self.pointsPerMinute)), 1)
@@ -402,6 +407,7 @@ final class TimerState {
     }
 
     func stop() {
+        cancelPendingCycleTransition()
         playSound(toggleOffSound)
         cancelWindupAudio()
 
@@ -434,6 +440,7 @@ final class TimerState {
     }
 
     func resume() {
+        cancelPendingCycleTransition()
         guard frozenSliderOffset >= Self.pointsPerMinute else { return }
         playSound(toggleOnSound)
         let exactSeconds = Double(frozenSliderOffset) / Double(Self.pointsPerMinute) * 60.0
@@ -492,6 +499,11 @@ final class TimerState {
         }
     }
 
+    private func cancelPendingCycleTransition() {
+        pendingCycleTransitionTask?.cancel()
+        pendingCycleTransitionTask = nil
+    }
+
     private func tick() {
         guard let startDate = cycleStartDate else { return }
         let elapsed = scheduler.now.timeIntervalSince(startDate)
@@ -506,6 +518,7 @@ final class TimerState {
     }
 
     private func cycleComplete() {
+        cancelPendingCycleTransition()
         timerTask?.cancel()
         timerTask = nil
         cycleStartDate = nil
@@ -517,8 +530,9 @@ final class TimerState {
         let nextMinutes = minutes(for: nextMode)
         let targetOffset = CGFloat(nextMinutes) * Self.pointsPerMinute
 
-        scheduler.schedule(after: 2.0) { [weak self] in
+        pendingCycleTransitionTask = scheduler.schedule(after: 2.0) { [weak self] in
             guard let self else { return }
+            self.pendingCycleTransitionTask = nil
             self.mode = nextMode
             self.beginWindAnimation(from: 0, to: targetOffset, clickCount: max(nextMinutes, 1)) { [weak self] in
                 self?.finishWindAndBeginCycle(nextMode)
