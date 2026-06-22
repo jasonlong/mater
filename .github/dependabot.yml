@@ -1,16 +1,7 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-    groups:
-      electron:
-        patterns:
-          - "electron-*"
-          - "electron"
-      stylelint: 
-        patterns:
-          - "stylelint-*"
-          - "stylelint"          
