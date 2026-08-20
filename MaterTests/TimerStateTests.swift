@@ -5,6 +5,7 @@ import AVFoundation
 
 private let workMinutesPreferenceKey = "AppPreferences.workMinutes"
 private let breakMinutesPreferenceKey = "AppPreferences.breakMinutes"
+private let languagePreferenceKey = "AppPreferences.language"
 
 @MainActor
 private func makePrefs() -> AppPreferences {
@@ -176,6 +177,38 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         prefs.soundEnabled = false
         let prefs2 = AppPreferences(defaults: defaults)
         #expect(prefs2.soundEnabled == false)
+    }
+
+    @Test func defaultLanguageIsSystemAndNotificationsDisabled() {
+        let prefs = makePrefs()
+        #expect(prefs.language == .system)
+        #expect(prefs.notificationsEnabled == false)
+        #expect(prefs.showPanelOnCycleComplete == false)
+    }
+
+    @Test func persistsShowPanelOnCycleComplete() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let prefs = AppPreferences(defaults: defaults)
+        prefs.showPanelOnCycleComplete = true
+        let persisted = AppPreferences(defaults: defaults)
+        #expect(persisted.showPanelOnCycleComplete == true)
+    }
+
+    @Test func persistsLanguageAndNotificationsEnabled() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let prefs = AppPreferences(defaults: defaults)
+        prefs.language = .simplifiedChinese
+        prefs.notificationsEnabled = true
+        let persisted = AppPreferences(defaults: defaults)
+        #expect(persisted.language == .simplifiedChinese)
+        #expect(persisted.notificationsEnabled == true)
+    }
+
+    @Test func unknownPersistedLanguageFallsBackToSystem() {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        defaults.set("fr", forKey: languagePreferenceKey)
+        let prefs = AppPreferences(defaults: defaults)
+        #expect(prefs.language == .system)
     }
 
     @Test func persistedHighDurationsClampToUpperBounds() {
@@ -362,6 +395,20 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
 
         #expect(state.mode == .breaking)
         #expect(state.isWinding == true)
+        state.stop()
+    }
+
+    @Test func cycleCompleteObserversReceiveCompletedMode() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+        var completedModes: [TimerMode] = []
+        state.addCycleCompleteObserver { completedModes.append($0) }
+
+        startCycleViaDrag(state, minutes: 1)
+        scheduler.now = scheduler.now.addingTimeInterval(60)
+        scheduler.repeatingTasks[0].fire()
+
+        #expect(completedModes == [.working])
         state.stop()
     }
 
@@ -968,5 +1015,66 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
 
         #expect(origin.x == 805)
         #expect(origin.y == 594)
+    }
+
+    @Test func originClampsToRightScreenEdge() {
+        // Status item flush against the right edge of a 1440-wide screen.
+        let buttonRect = CGRect(x: 1430, y: 800, width: 30, height: 24)
+        let panelSize = CGSize(width: 220, height: 206)
+        let visibleFrame = CGRect(x: 0, y: 400, width: 1440, height: 500)
+
+        let origin = StatusItemController.panelOrigin(
+            buttonRect: buttonRect,
+            panelSize: panelSize,
+            visibleFrame: visibleFrame
+        )
+
+        let expectedX = visibleFrame.maxX - panelSize.width
+        #expect(origin.x == expectedX)
+        #expect(origin.y == buttonRect.minY - panelSize.height)
+    }
+
+    @Test func originClampsToLeftScreenEdge() {
+        let buttonRect = CGRect(x: 0, y: 800, width: 30, height: 24)
+        let panelSize = CGSize(width: 220, height: 206)
+        let visibleFrame = CGRect(x: 0, y: 400, width: 1440, height: 500)
+
+        let origin = StatusItemController.panelOrigin(
+            buttonRect: buttonRect,
+            panelSize: panelSize,
+            visibleFrame: visibleFrame
+        )
+
+        #expect(origin.x == 0)
+    }
+
+    @Test func originUnchangedWithoutVisibleFrame() {
+        let buttonRect = CGRect(x: 900, y: 800, width: 30, height: 24)
+        let panelSize = CGSize(width: 220, height: 206)
+
+        let origin = StatusItemController.panelOrigin(
+            buttonRect: buttonRect,
+            panelSize: panelSize,
+            visibleFrame: nil
+        )
+
+        #expect(origin == StatusItemController.panelOrigin(buttonRect: buttonRect, panelSize: panelSize))
+    }
+}
+
+// MARK: - Localization
+
+@MainActor
+@Suite struct LocalizationTests {
+    @Test func englishBundleResolvesStrings() {
+        let bundle = Localization.resolveBundle(for: .english)
+        #expect(bundle != nil)
+        #expect(bundle?.localizedString(forKey: "timer.start", value: "", table: nil) == "Start")
+    }
+
+    @Test func simplifiedChineseBundleResolvesStrings() {
+        let bundle = Localization.resolveBundle(for: .simplifiedChinese)
+        #expect(bundle != nil)
+        #expect(bundle?.localizedString(forKey: "timer.start", value: "", table: nil) == "开始")
     }
 }

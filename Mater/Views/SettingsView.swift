@@ -1,14 +1,16 @@
 import SwiftUI
+import UserNotifications
 
 struct SettingsView: View {
     enum Tab: String, Hashable {
         case general
         case about
 
+        @MainActor
         var title: String {
             switch self {
-            case .general: "General"
-            case .about: "About"
+            case .general: Localization.shared.string("tab.general")
+            case .about: Localization.shared.string("tab.about")
             }
         }
 
@@ -110,32 +112,81 @@ private struct SettingsTabButtonStyle: ButtonStyle {
 
 private struct GeneralSettingsPane: View {
     @Bindable var preferences: AppPreferences
+    @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
 
     var body: some View {
         Form {
-            Section("Timer") {
-                Picker("Work duration", selection: $preferences.workMinutes) {
-                    ForEach(Array(AppPreferences.workRange), id: \.self) { min in
-                        Text("\(min) min").tag(min)
+            Section(Localization.shared.string("section.timer")) {
+                Picker(Localization.shared.string("settings.workDuration"), selection: $preferences.workMinutes) {
+                    ForEach(Array(AppPreferences.workRange), id: \.self) { minute in
+                        Text(Localization.shared.string("format.minutes", minute)).tag(minute)
                     }
                 }
 
-                Picker("Break duration", selection: $preferences.breakMinutes) {
-                    ForEach(Array(AppPreferences.breakRange), id: \.self) { min in
-                        Text("\(min) min").tag(min)
+                Picker(Localization.shared.string("settings.breakDuration"), selection: $preferences.breakMinutes) {
+                    ForEach(Array(AppPreferences.breakRange), id: \.self) { minute in
+                        Text(Localization.shared.string("format.minutes", minute)).tag(minute)
+                    }
+                }
+
+                Toggle(
+                    Localization.shared.string("settings.showPanelOnCompletion"),
+                    isOn: $preferences.showPanelOnCycleComplete
+                )
+            }
+
+            Section(Localization.shared.string("section.notifications")) {
+                Toggle(
+                    Localization.shared.string("settings.notifications"),
+                    isOn: notificationsEnabled
+                )
+                if notificationStatus == .denied {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(Localization.shared.string("settings.notifications.denied"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Button(Localization.shared.string("settings.openNotificationSettings")) {
+                            NotificationPermission.openSystemSettings()
+                        }
                     }
                 }
             }
 
-            Section("Sound") {
-                Toggle("Play sounds", isOn: $preferences.soundEnabled)
+            Section(Localization.shared.string("section.language")) {
+                Picker(Localization.shared.string("section.language"), selection: $preferences.language) {
+                    ForEach(AppLanguage.allCases) { language in
+                        Text(language.displayName).tag(language)
+                    }
+                }
             }
 
-            Section("Startup") {
-                Toggle("Launch at login", isOn: $preferences.launchAtLogin)
+            Section(Localization.shared.string("section.sound")) {
+                Toggle(Localization.shared.string("settings.playSounds"), isOn: $preferences.soundEnabled)
+            }
+
+            Section(Localization.shared.string("section.startup")) {
+                Toggle(Localization.shared.string("settings.launchAtLogin"), isOn: $preferences.launchAtLogin)
             }
         }
         .formStyle(.grouped)
+        .task {
+            notificationStatus = await NotificationPermission.authorizationStatus()
+        }
+    }
+
+    private var notificationsEnabled: Binding<Bool> {
+        Binding(
+            get: { preferences.notificationsEnabled },
+            set: { enabled in
+                preferences.notificationsEnabled = enabled
+                if enabled {
+                    Task { @MainActor in
+                        _ = await NotificationPermission.requestAuthorization()
+                        notificationStatus = await NotificationPermission.authorizationStatus()
+                    }
+                }
+            }
+        )
     }
 }
 
@@ -168,7 +219,7 @@ private struct AboutSettingsPane: View {
                 }
 
                 HStack(spacing: 6) {
-                    Text("Made by [Jason Long](https://github.com/jasonlong)")
+                    markdownText(Localization.shared.string("about.madeBy"))
                     Text("·")
                     Text("[GitHub](https://github.com/jasonlong/mater)")
                 }
@@ -176,7 +227,7 @@ private struct AboutSettingsPane: View {
                 .foregroundStyle(.secondary)
                 .tint(.primary)
 
-                Text("Sound effects by [snd.dev](https://snd.dev)")
+                markdownText(Localization.shared.string("about.soundCredit"))
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
                     .tint(.secondary)
@@ -186,4 +237,15 @@ private struct AboutSettingsPane: View {
             Spacer()
         }
     }
+}
+
+/// Renders a localized string that may contain inline markdown links.
+private func markdownText(_ string: String) -> Text {
+    if let attributed = try? AttributedString(
+        markdown: string,
+        options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+    ) {
+        return Text(attributed)
+    }
+    return Text(string)
 }

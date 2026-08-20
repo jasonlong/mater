@@ -110,11 +110,11 @@ struct TimerPanelView: View {
     @ViewBuilder
     private var timerButton: some View {
         let label = if timerState.mode != .stopped {
-            "Stop"
+            Localization.shared.string("timer.stop")
         } else if isPaused {
-            "Resume"
+            Localization.shared.string("timer.resume")
         } else {
-            "Start"
+            Localization.shared.string("timer.start")
         }
 
         Button(label, action: timerState.toggle)

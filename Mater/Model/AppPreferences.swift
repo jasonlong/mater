@@ -7,6 +7,9 @@ final class AppPreferences {
     private static let workKey = "AppPreferences.workMinutes"
     private static let breakKey = "AppPreferences.breakMinutes"
     private static let soundKey = "AppPreferences.soundEnabled"
+    private static let languageKey = "AppPreferences.language"
+    private static let notificationsKey = "AppPreferences.notificationsEnabled"
+    private static let showPanelKey = "AppPreferences.showPanelOnCycleComplete"
 
     static let workRange = 1...60
     static let breakRange = 1...30
@@ -16,6 +19,7 @@ final class AppPreferences {
     private let defaults: UserDefaults
     private var storedWorkMinutes: Int
     private var storedBreakMinutes: Int
+    private var storedLanguage: AppLanguage
 
     var workMinutes: Int {
         get { storedWorkMinutes }
@@ -35,6 +39,22 @@ final class AppPreferences {
 
     var soundEnabled: Bool {
         didSet { defaults.set(soundEnabled, forKey: Self.soundKey) }
+    }
+
+    var language: AppLanguage {
+        get { storedLanguage }
+        set {
+            storedLanguage = newValue
+            defaults.set(newValue.rawValue, forKey: Self.languageKey)
+        }
+    }
+
+    var notificationsEnabled: Bool {
+        didSet { defaults.set(notificationsEnabled, forKey: Self.notificationsKey) }
+    }
+
+    var showPanelOnCycleComplete: Bool {
+        didSet { defaults.set(showPanelOnCycleComplete, forKey: Self.showPanelKey) }
     }
 
     var launchAtLogin: Bool {
@@ -61,6 +81,16 @@ final class AppPreferences {
             range: Self.breakRange
         )
         soundEnabled = defaults.object(forKey: Self.soundKey) as? Bool ?? true
+        storedLanguage = Self.storedLanguage(defaults: defaults)
+        notificationsEnabled = defaults.object(forKey: Self.notificationsKey) as? Bool ?? false
+        showPanelOnCycleComplete = defaults.object(forKey: Self.showPanelKey) as? Bool ?? false
+    }
+
+    private static func storedLanguage(defaults: UserDefaults) -> AppLanguage {
+        guard let rawValue = defaults.string(forKey: languageKey),
+              let language = AppLanguage(rawValue: rawValue)
+        else { return .system }
+        return language
     }
 
     private static func clamped(_ value: Int, to range: ClosedRange<Int>) -> Int {

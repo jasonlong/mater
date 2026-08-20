@@ -26,6 +26,9 @@
 		BB0000000000000000000014 /* toggle_off.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000014 /* toggle_off.wav */; };
 		BB0000000000000000000015 /* tick.wav in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000015 /* tick.wav */; };
 		BB0000000000000000000020 /* TimerStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000020 /* TimerStateTests.swift */; };
+		BB0000000000000000000032 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000032 /* Localization.swift */; };
+		BB0000000000000000000033 /* NotificationScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000033 /* NotificationScheduler.swift */; };
+		BB0000000000000000000034 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000034 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -61,6 +64,9 @@
 		AA0000000000000000000014 /* toggle_off.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = toggle_off.wav; sourceTree = "<group>"; };
 		AA0000000000000000000015 /* tick.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = tick.wav; sourceTree = "<group>"; };
 		AA0000000000000000000020 /* TimerStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerStateTests.swift; sourceTree = "<group>"; };
+		AA0000000000000000000032 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Localization.swift; sourceTree = "<group>"; };
+		AA0000000000000000000033 /* NotificationScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationScheduler.swift; sourceTree = "<group>"; };
+		AA0000000000000000000034 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		AA0000000000000000000021 /* MaterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MaterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -101,6 +107,7 @@
 				CC0000000000000000000005 /* Views */,
 				CC0000000000000000000006 /* Sounds */,
 				AA000000000000000000000C /* Assets.xcassets */,
+				AA0000000000000000000034 /* Localizable.xcstrings */,
 				AA000000000000000000000D /* Info.plist */,
 				AA000000000000000000000E /* Mater.entitlements */,
 			);
@@ -123,6 +130,8 @@
 				AA0000000000000000000008 /* WindupSoundGenerator.swift */,
 				AA0000000000000000000009 /* IconGenerator.swift */,
 				AA000000000000000000000A /* AppPreferences.swift */,
+				AA0000000000000000000032 /* Localization.swift */,
+				AA0000000000000000000033 /* NotificationScheduler.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -238,6 +247,7 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = CC0000000000000000000001;
 			productRefGroup = CC0000000000000000000007 /* Products */;
@@ -261,6 +271,7 @@
 				BB0000000000000000000013 /* toggle_on.wav in Resources */,
 				BB0000000000000000000014 /* toggle_off.wav in Resources */,
 				BB0000000000000000000015 /* tick.wav in Resources */,
+				BB0000000000000000000034 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -301,6 +312,8 @@
 				BB000000000000000000000A /* AppPreferences.swift in Sources */,
 				BB000000000000000000000B /* SettingsView.swift in Sources */,
 				BB000000000000000000000D /* SettingsWindowController.swift in Sources */,
+				BB0000000000000000000032 /* Localization.swift in Sources */,
+				BB0000000000000000000033 /* NotificationScheduler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

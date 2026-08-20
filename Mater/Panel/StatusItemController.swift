@@ -9,7 +9,6 @@ final class StatusItemController: NSObject {
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
     private var iconCache: [String: NSImage] = [:]
-    private lazy var contextMenu: NSMenu = buildContextMenu()
     private var lastIconName: String = ""
     private let showSettings: () -> Void
 
@@ -28,8 +27,9 @@ final class StatusItemController: NSObject {
         }
         prewarmLikelyIcons()
 
-        timerState.onCycleComplete = { [weak self] in
-            self?.showPanel()
+        timerState.addCycleCompleteObserver { [weak self] _ in
+            guard let self, self.timerState.preferences.showPanelOnCycleComplete else { return }
+            self.showPanel()
         }
 
         observeIcon()
@@ -64,26 +64,34 @@ final class StatusItemController: NSObject {
 
     func showPanel() {
         guard let buttonRect = statusItemButtonScreenFrame() else { return }
-        timerPanel.setFrameOrigin(Self.panelOrigin(buttonRect: buttonRect, panelSize: timerPanel.frame.size))
+        let visibleFrame = statusItem.button?.window?.screen?.visibleFrame
+        let origin = Self.panelOrigin(
+            buttonRect: buttonRect,
+            panelSize: timerPanel.frame.size,
+            visibleFrame: visibleFrame
+        )
+        timerPanel.setFrameOrigin(origin)
         timerPanel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 
     private func showContextMenu() {
         guard let button = statusItem.button else { return }
+        // Rebuild on every click so menu titles pick up the current language.
+        let menu = buildContextMenu()
         let menuOrigin = NSPoint(x: 0, y: button.bounds.height + 4)
-        contextMenu.popUp(positioning: nil, at: menuOrigin, in: button)
+        menu.popUp(positioning: nil, at: menuOrigin, in: button)
     }
 
     private func buildContextMenu() -> NSMenu {
         let menu = NSMenu()
 
-        let settingsItem = NSMenuItem(title: "Settings\u{2026}", action: #selector(openSettings), keyEquivalent: ",")
+        let settingsItem = NSMenuItem(title: Localization.shared.string("menu.settings"), action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.target = self
         menu.addItem(settingsItem)
         menu.addItem(.separator())
 
-        let quitItem = NSMenuItem(title: "Quit Mater", action: #selector(quit), keyEquivalent: "q")
+        let quitItem = NSMenuItem(title: Localization.shared.string("menu.quit"), action: #selector(quit), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
 
@@ -191,6 +199,19 @@ final class StatusItemController: NSObject {
         CGPoint(
             x: buttonRect.midX - panelSize.width / 2,
             y: buttonRect.minY - panelSize.height
+        )
+    }
+
+    /// Clamps the centered origin horizontally so the panel stays fully on
+    /// screen when the status item sits near a screen edge.
+    static func panelOrigin(buttonRect: CGRect, panelSize: CGSize, visibleFrame: CGRect?) -> CGPoint {
+        let base = panelOrigin(buttonRect: buttonRect, panelSize: panelSize)
+        guard let visibleFrame else { return base }
+        let minX = visibleFrame.minX
+        let maxX = max(visibleFrame.maxX - panelSize.width, minX)
+        return CGPoint(
+            x: min(max(base.x, minX), maxX),
+            y: base.y
         )
     }
 }

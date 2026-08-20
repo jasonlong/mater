@@ -22,6 +22,8 @@ Mater is a minimal macOS menu bar Pomodoro timer written in Swift, SwiftUI, and 
 - **Mater/Views/SettingsView.swift** - Renders Settings and About panes.
 - **Mater/Model/TimerState.swift** - Owns the timer state machine, drag/momentum behavior, cycle transitions, and sound playback.
 - **Mater/Model/AppPreferences.swift** - Owns persisted preferences and launch-at-login state.
+- **Mater/Model/Localization.swift** - In-app language switching (system/English/简体中文) with runtime bundle resolution; strings live in `Mater/Localizable.xcstrings`.
+- **Mater/Model/NotificationScheduler.swift** - Delivers cycle completion notifications via UserNotifications (time-sensitive) and manages authorization.
 - **Mater/Model/IconGenerator.swift** - Generates menu bar status icons dynamically.
 - **Mater/Model/WindupSoundGenerator.swift** - Synthesizes windup audio from `tick.wav`.
 - **MaterTests/TimerStateTests.swift** - Contains Swift Testing coverage for preferences, timer state, audio generation, icons, and panel-origin helpers.
@@ -31,6 +33,8 @@ Mater is a minimal macOS menu bar Pomodoro timer written in Swift, SwiftUI, and 
 - Status item icons are generated dynamically by `IconGenerator`.
 - Sounds live under `Mater/Sounds/`.
 - Preferences use `UserDefaults` through `AppPreferences`.
+- Localized strings resolve through `Localization.shared.string(_:)`; never use string literals directly in UI code.
+- Cycle completion events fan out via `TimerState.addCycleCompleteObserver` (panel presentation + notifications).
 - Launch-at-login uses `ServiceManagement`.
 - Tests use Swift Testing in `MaterTests/TimerStateTests.swift`.
 

@@ -82,7 +82,11 @@ final class TimerState {
             }
         }
     }
-    var onCycleComplete: (() -> Void)?
+    private var cycleCompleteObservers: [@MainActor (TimerMode) -> Void] = []
+
+    func addCycleCompleteObserver(_ observer: @escaping @MainActor (TimerMode) -> Void) {
+        cycleCompleteObservers.append(observer)
+    }
 
     private(set) var cycleStartDate: Date?
     private(set) var cycleDuration: TimeInterval = 0
@@ -524,7 +528,10 @@ final class TimerState {
         cycleStartDate = nil
         cycleDuration = 0
         playSound(dingSound)
-        onCycleComplete?()
+        let completedMode = mode
+        for observer in cycleCompleteObservers {
+            observer(completedMode)
+        }
 
         let nextMode: TimerMode = mode == .working ? .breaking : .working
         let nextMinutes = minutes(for: nextMode)

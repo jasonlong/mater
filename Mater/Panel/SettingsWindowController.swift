@@ -22,6 +22,7 @@ final class SettingsWindowController: NSWindowController {
 
     func show() {
         guard let window else { return }
+        window.title = Localization.shared.string("settings.title")
         window.orderFrontRegardless()
         window.makeKey()
         NSApp.activate(ignoringOtherApps: true)
