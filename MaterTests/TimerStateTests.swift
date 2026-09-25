@@ -556,6 +556,24 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(state.cycleStartDate != nil)
     }
 
+    @Test func toggleResumesWithLessThanOneMinuteRemaining() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, scheduler: scheduler)
+
+        state.start()
+        scheduler.delayedTasks[0].fire()
+        scheduler.now = scheduler.now.addingTimeInterval(1)
+        state.stop()
+
+        #expect(state.frozenSliderOffset > 0)
+        #expect(state.frozenSliderOffset < TimerState.pointsPerMinute)
+
+        state.toggle()
+
+        #expect(state.mode == .working)
+        #expect(state.remainingSeconds == 59)
+    }
+
     @Test func resumeStartsFromFrozenPosition() {
         let state = makeTimerState()
         startCycleViaDrag(state, minutes: 15)
