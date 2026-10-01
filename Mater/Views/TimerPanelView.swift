@@ -117,12 +117,15 @@ struct TimerPanelView: View {
             "Start"
         }
 
-        Button(label, action: timerState.toggle)
-        .buttonStyle(.plain)
+        Button(action: timerState.toggle) {
+            Text(label)
+                .frame(width: 95, height: 38)
+                .contentShape(Capsule())
+                .modifier(GlassButtonModifier())
+        }
+        .buttonStyle(TimerButtonStyle())
         .font(.system(size: 18, weight: .medium))
         .foregroundColor(timerState.visualMode == .working ? workRed : buttonDark)
-        .frame(width: 95, height: 38)
-        .modifier(GlassButtonModifier())
         .colorScheme(.light)
         .overlay(alignment: .trailing) {
             if isPaused {
@@ -138,6 +141,12 @@ struct TimerPanelView: View {
                 .offset(x: 34)
             }
         }
+    }
+}
+
+private struct TimerButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
     }
 }
 

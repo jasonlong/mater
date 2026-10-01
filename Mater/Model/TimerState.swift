@@ -441,7 +441,7 @@ final class TimerState {
 
     func resume() {
         cancelPendingCycleTransition()
-        guard frozenSliderOffset >= Self.pointsPerMinute else { return }
+        guard frozenSliderOffset > 0 else { return }
         playSound(toggleOnSound)
         let exactSeconds = Double(frozenSliderOffset) / Double(Self.pointsPerMinute) * 60.0
         mode = pausedMode
