@@ -123,7 +123,7 @@ struct TimerPanelView: View {
                 .contentShape(Capsule())
                 .modifier(GlassButtonModifier())
         }
-        .buttonStyle(PressScaleButtonStyle())
+        .buttonStyle(TimerButtonStyle())
         .font(.system(size: 18, weight: .medium))
         .foregroundColor(timerState.visualMode == .working ? workRed : buttonDark)
         .colorScheme(.light)
@@ -144,11 +144,9 @@ struct TimerPanelView: View {
     }
 }
 
-private struct PressScaleButtonStyle: ButtonStyle {
+private struct TimerButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 1.04 : 1)
-            .animation(.spring(response: 0.18, dampingFraction: 0.72), value: configuration.isPressed)
     }
 }
 
