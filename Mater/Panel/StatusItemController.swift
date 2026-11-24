@@ -12,6 +12,8 @@ final class StatusItemController: NSObject {
     private lazy var contextMenu: NSMenu = buildContextMenu()
     private var lastIconName: String = ""
     private let showSettings: () -> Void
+    private var panelShownOnCycleComplete = false
+    private static let closeDelayAfterCycleTransition: TimeInterval = 1.0
 
     init(timerState: TimerState, showSettings: @escaping () -> Void) {
         self.timerState = timerState
@@ -30,7 +32,11 @@ final class StatusItemController: NSObject {
         prewarmLikelyIcons()
 
         timerState.onCycleComplete = { [weak self] in
-            self?.showPanel()
+            self?.showPanelWithoutFocus()
+        }
+
+        timerState.onCycleTransitionComplete = { [weak self] in
+            self?.closePanelIfShownOnCycleComplete()
         }
 
         observeIcon()
@@ -64,10 +70,34 @@ final class StatusItemController: NSObject {
     }
 
     func showPanel() {
-        guard let buttonRect = statusItemButtonScreenFrame() else { return }
-        timerPanel.setFrameOrigin(Self.panelOrigin(buttonRect: buttonRect, panelSize: timerPanel.frame.size))
+        guard positionPanel() else { return }
+        panelShownOnCycleComplete = false
         timerPanel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func showPanelWithoutFocus() {
+        guard positionPanel() else { return }
+        panelShownOnCycleComplete = true
+        timerPanel.orderFrontRegardless()
+    }
+
+    private func positionPanel() -> Bool {
+        guard let buttonRect = statusItemButtonScreenFrame() else { return false }
+        timerPanel.setFrameOrigin(Self.panelOrigin(buttonRect: buttonRect, panelSize: timerPanel.frame.size))
+        return true
+    }
+
+    private func closePanelIfShownOnCycleComplete() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.closeDelayAfterCycleTransition) { [weak self] in
+            guard let self,
+                  self.panelShownOnCycleComplete,
+                  self.timerPanel.isVisible,
+                  !self.timerPanel.isKeyWindow
+            else { return }
+            self.panelShownOnCycleComplete = false
+            self.timerPanel.close()
+        }
     }
 
     private func showContextMenu() {

@@ -83,6 +83,7 @@ final class TimerState {
         }
     }
     var onCycleComplete: (() -> Void)?
+    var onCycleTransitionComplete: (() -> Void)?
 
     private(set) var cycleStartDate: Date?
     private(set) var cycleDuration: TimeInterval = 0
@@ -536,6 +537,7 @@ final class TimerState {
             self.mode = nextMode
             self.beginWindAnimation(from: 0, to: targetOffset, clickCount: max(nextMinutes, 1)) { [weak self] in
                 self?.finishWindAndBeginCycle(nextMode)
+                self?.onCycleTransitionComplete?()
             }
         }
     }
