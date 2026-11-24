@@ -401,6 +401,41 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         state.stop()
     }
 
+    @Test func stopBeforeNextCycleWindupDoesNotFireCycleTransitionComplete() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+        var transitionCompleteCount = 0
+        state.onCycleTransitionComplete = { transitionCompleteCount += 1 }
+
+        startCycleViaDrag(state, minutes: 1)
+        scheduler.now = scheduler.now.addingTimeInterval(60)
+        scheduler.repeatingTasks[0].fire()
+        state.stop()
+        scheduler.delayedTasks[0].fire()
+
+        #expect(state.isWinding == false)
+        #expect(transitionCompleteCount == 0)
+    }
+
+    @Test func dragDuringNextCycleWindupDoesNotFireCycleTransitionComplete() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+        var transitionCompleteCount = 0
+        state.onCycleTransitionComplete = { transitionCompleteCount += 1 }
+
+        startCycleViaDrag(state, minutes: 1)
+        scheduler.now = scheduler.now.addingTimeInterval(60)
+        scheduler.repeatingTasks[0].fire()
+        scheduler.delayedTasks[0].fire()
+        state.dragBegan()
+        scheduler.delayedTasks[1].fire()
+
+        #expect(state.isDragging == true)
+        #expect(transitionCompleteCount == 0)
+        state.dragEnded(velocity: 0)
+        state.stop()
+    }
+
     @Test func windCompletionCanBeFiredDeterministically() {
         let scheduler = ManualTimerStateScheduler()
         let state = makeTimerState(scheduler: scheduler)
