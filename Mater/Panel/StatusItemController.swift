@@ -79,9 +79,7 @@ final class StatusItemController: NSObject {
     private func showPanelWithoutFocus() {
         let panelWasVisible = timerPanel.isVisible
         guard positionPanel() else { return }
-        if !panelWasVisible {
-            panelShownOnCycleComplete = true
-        }
+        panelShownOnCycleComplete = !panelWasVisible
         timerPanel.orderFrontRegardless()
     }
 
