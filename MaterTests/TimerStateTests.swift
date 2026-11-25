@@ -143,6 +143,20 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
     state.dragEnded(velocity: 0)
 }
 
+@MainActor
+private func completeOneMinuteCycle(
+    _ state: TimerState,
+    scheduler: ManualTimerStateScheduler
+) -> ManualScheduledTask {
+    startCycleViaDrag(state, minutes: 1)
+    scheduler.now = scheduler.now.addingTimeInterval(60)
+    scheduler.repeatingTasks[0].fire()
+
+    #expect(state.remainingSeconds == 0)
+    #expect(scheduler.delayedTasks.count == 1)
+    return scheduler.delayedTasks[0]
+}
+
 // MARK: - AppPreferences
 
 @MainActor
@@ -371,10 +385,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         var transitionCompleteCount = 0
         state.onCycleTransitionComplete = { transitionCompleteCount += 1 }
 
-        startCycleViaDrag(state, minutes: 1)
-        scheduler.now = scheduler.now.addingTimeInterval(60)
-        scheduler.repeatingTasks[0].fire()
-        scheduler.delayedTasks[0].fire()
+        completeOneMinuteCycle(state, scheduler: scheduler).fire()
 
         #expect(state.isWinding == true)
         #expect(transitionCompleteCount == 0)
@@ -407,11 +418,9 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         var transitionCompleteCount = 0
         state.onCycleTransitionComplete = { transitionCompleteCount += 1 }
 
-        startCycleViaDrag(state, minutes: 1)
-        scheduler.now = scheduler.now.addingTimeInterval(60)
-        scheduler.repeatingTasks[0].fire()
+        let transition = completeOneMinuteCycle(state, scheduler: scheduler)
         state.stop()
-        scheduler.delayedTasks[0].fire()
+        transition.fire()
 
         #expect(state.isWinding == false)
         #expect(transitionCompleteCount == 0)
@@ -423,10 +432,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         var transitionCompleteCount = 0
         state.onCycleTransitionComplete = { transitionCompleteCount += 1 }
 
-        startCycleViaDrag(state, minutes: 1)
-        scheduler.now = scheduler.now.addingTimeInterval(60)
-        scheduler.repeatingTasks[0].fire()
-        scheduler.delayedTasks[0].fire()
+        completeOneMinuteCycle(state, scheduler: scheduler).fire()
         state.dragBegan()
         scheduler.delayedTasks[1].fire()
 
@@ -577,19 +583,6 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(state.mode == .breaking)
         #expect(state.isWinding == true)
         state.stop()
-    }
-
-    private func completeOneMinuteCycle(
-        _ state: TimerState,
-        scheduler: ManualTimerStateScheduler
-    ) -> ManualScheduledTask {
-        startCycleViaDrag(state, minutes: 1)
-        scheduler.now = scheduler.now.addingTimeInterval(60)
-        scheduler.repeatingTasks[0].fire()
-
-        #expect(state.remainingSeconds == 0)
-        #expect(scheduler.delayedTasks.count == 1)
-        return scheduler.delayedTasks[0]
     }
 }
 
@@ -1064,12 +1057,6 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
 
 @MainActor
 @Suite struct CycleEndPanelTests {
-    private func endCycle(_ state: TimerState, scheduler: ManualTimerStateScheduler) {
-        startCycleViaDrag(state, minutes: 1)
-        scheduler.now = scheduler.now.addingTimeInterval(60)
-        scheduler.repeatingTasks[0].fire()
-    }
-
     private func finishCycleTransitionAndClose(scheduler: ManualTimerStateScheduler) {
         scheduler.delayedTasks[0].fire()
         scheduler.delayedTasks[1].fire()
@@ -1083,7 +1070,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
         let controller = StatusItemController(timerState: state, scheduler: scheduler, showSettings: {})
 
-        endCycle(state, scheduler: scheduler)
+        _ = completeOneMinuteCycle(state, scheduler: scheduler)
         #expect(controller.timerPanel.isVisible == true)
 
         finishCycleTransitionAndClose(scheduler: scheduler)
@@ -1097,7 +1084,7 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
         let controller = StatusItemController(timerState: state, scheduler: scheduler, showSettings: {})
 
-        endCycle(state, scheduler: scheduler)
+        _ = completeOneMinuteCycle(state, scheduler: scheduler)
         #expect(controller.timerPanel.isVisible == true)
 
         NotificationCenter.default.post(name: NSWindow.didBecomeKeyNotification, object: controller.timerPanel)

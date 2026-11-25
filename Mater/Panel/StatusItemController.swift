@@ -14,8 +14,6 @@ final class StatusItemController: NSObject {
     private let showSettings: () -> Void
     private let scheduler: TimerStateScheduling
     private var panelShownOnCycleComplete = false
-    private var pendingPanelClose: TimerStateScheduledTask?
-    private static let closeDelayAfterCycleTransition: TimeInterval = 1.0
 
     convenience init(timerState: TimerState, showSettings: @escaping () -> Void) {
         self.init(timerState: timerState, scheduler: SystemTimerStateScheduler(), showSettings: showSettings)
@@ -85,17 +83,14 @@ final class StatusItemController: NSObject {
 
     func showPanel() {
         guard positionPanel() else { return }
-        pendingPanelClose?.cancel()
         panelShownOnCycleComplete = false
         timerPanel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 
     private func showPanelWithoutFocus() {
-        let panelWasVisible = timerPanel.isVisible
         guard positionPanel() else { return }
-        pendingPanelClose?.cancel()
-        panelShownOnCycleComplete = !panelWasVisible
+        panelShownOnCycleComplete = !timerPanel.isVisible
         timerPanel.orderFrontRegardless()
     }
 
@@ -110,10 +105,8 @@ final class StatusItemController: NSObject {
     }
 
     private func closePanelIfShownOnCycleComplete() {
-        pendingPanelClose?.cancel()
-        pendingPanelClose = scheduler.schedule(after: Self.closeDelayAfterCycleTransition) { [weak self] in
-            guard let self, self.panelShownOnCycleComplete, self.timerPanel.isVisible else { return }
-            self.panelShownOnCycleComplete = false
+        scheduler.schedule(after: 1.0) { [weak self] in
+            guard let self, self.panelShownOnCycleComplete else { return }
             self.timerPanel.close()
         }
     }
