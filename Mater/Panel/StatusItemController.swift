@@ -4,7 +4,7 @@ import Observation
 @MainActor
 final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
-    private let timerPanel: TimerPanel
+    let timerPanel: TimerPanel
     private let timerState: TimerState
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
@@ -12,11 +12,18 @@ final class StatusItemController: NSObject {
     private lazy var contextMenu: NSMenu = buildContextMenu()
     private var lastIconName: String = ""
     private let showSettings: () -> Void
+    private let scheduler: TimerStateScheduling
     private var panelShownOnCycleComplete = false
+    private var pendingPanelClose: TimerStateScheduledTask?
     private static let closeDelayAfterCycleTransition: TimeInterval = 1.0
 
-    init(timerState: TimerState, showSettings: @escaping () -> Void) {
+    convenience init(timerState: TimerState, showSettings: @escaping () -> Void) {
+        self.init(timerState: timerState, scheduler: SystemTimerStateScheduler(), showSettings: showSettings)
+    }
+
+    init(timerState: TimerState, scheduler: TimerStateScheduling, showSettings: @escaping () -> Void) {
         self.timerState = timerState
+        self.scheduler = scheduler
         self.showSettings = showSettings
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         self.statusItem.autosaveName = "Mater.StatusItem"
@@ -38,6 +45,13 @@ final class StatusItemController: NSObject {
         timerState.onCycleTransitionComplete = { [weak self] in
             self?.closePanelIfShownOnCycleComplete()
         }
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(panelDidBecomeKey),
+            name: NSWindow.didBecomeKeyNotification,
+            object: timerPanel
+        )
 
         observeIcon()
         setupOutsideClickMonitors()
@@ -71,6 +85,7 @@ final class StatusItemController: NSObject {
 
     func showPanel() {
         guard positionPanel() else { return }
+        pendingPanelClose?.cancel()
         panelShownOnCycleComplete = false
         timerPanel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -79,6 +94,7 @@ final class StatusItemController: NSObject {
     private func showPanelWithoutFocus() {
         let panelWasVisible = timerPanel.isVisible
         guard positionPanel() else { return }
+        pendingPanelClose?.cancel()
         panelShownOnCycleComplete = !panelWasVisible
         timerPanel.orderFrontRegardless()
     }
@@ -89,13 +105,14 @@ final class StatusItemController: NSObject {
         return true
     }
 
+    @objc private func panelDidBecomeKey() {
+        panelShownOnCycleComplete = false
+    }
+
     private func closePanelIfShownOnCycleComplete() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + Self.closeDelayAfterCycleTransition) { [weak self] in
-            guard let self,
-                  self.panelShownOnCycleComplete,
-                  self.timerPanel.isVisible,
-                  !self.timerPanel.isKeyWindow
-            else { return }
+        pendingPanelClose?.cancel()
+        pendingPanelClose = scheduler.schedule(after: Self.closeDelayAfterCycleTransition) { [weak self] in
+            guard let self, self.panelShownOnCycleComplete, self.timerPanel.isVisible else { return }
             self.panelShownOnCycleComplete = false
             self.timerPanel.close()
         }

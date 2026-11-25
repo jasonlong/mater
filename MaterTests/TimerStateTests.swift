@@ -1059,3 +1059,53 @@ private func startCycleViaDrag(_ state: TimerState, minutes: Int = 25) {
         #expect(origin.y == 594)
     }
 }
+
+// MARK: - Cycle-End Panel
+
+@MainActor
+@Suite struct CycleEndPanelTests {
+    private func endCycle(_ state: TimerState, scheduler: ManualTimerStateScheduler) {
+        startCycleViaDrag(state, minutes: 1)
+        scheduler.now = scheduler.now.addingTimeInterval(60)
+        scheduler.repeatingTasks[0].fire()
+    }
+
+    private func finishCycleTransitionAndClose(scheduler: ManualTimerStateScheduler) {
+        scheduler.delayedTasks[0].fire()
+        scheduler.delayedTasks[1].fire()
+        #expect(scheduler.delayedTasks.count == 3)
+        #expect(scheduler.delayedTasks[2].interval == 1.0)
+        scheduler.delayedTasks[2].fire()
+    }
+
+    @Test func panelShownOnCycleCompleteClosesAfterCycleTransition() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+        let controller = StatusItemController(timerState: state, scheduler: scheduler, showSettings: {})
+
+        endCycle(state, scheduler: scheduler)
+        #expect(controller.timerPanel.isVisible == true)
+
+        finishCycleTransitionAndClose(scheduler: scheduler)
+
+        #expect(controller.timerPanel.isVisible == false)
+        state.stop()
+    }
+
+    @Test func panelStaysOpenAfterGainingAndLosingFocus() {
+        let scheduler = ManualTimerStateScheduler()
+        let state = makeTimerState(workMinutes: 1, breakMinutes: 1, scheduler: scheduler)
+        let controller = StatusItemController(timerState: state, scheduler: scheduler, showSettings: {})
+
+        endCycle(state, scheduler: scheduler)
+        #expect(controller.timerPanel.isVisible == true)
+
+        NotificationCenter.default.post(name: NSWindow.didBecomeKeyNotification, object: controller.timerPanel)
+        NotificationCenter.default.post(name: NSWindow.didResignKeyNotification, object: controller.timerPanel)
+        finishCycleTransitionAndClose(scheduler: scheduler)
+
+        #expect(controller.timerPanel.isVisible == true)
+        controller.timerPanel.close()
+        state.stop()
+    }
+}
