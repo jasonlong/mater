@@ -4,7 +4,7 @@ import Observation
 @MainActor
 final class StatusItemController: NSObject {
     private let statusItem: NSStatusItem
-    private let timerPanel: TimerPanel
+    let timerPanel: TimerPanel
     private let timerState: TimerState
     private var globalMouseMonitor: Any?
     private var localMouseMonitor: Any?
@@ -12,9 +12,16 @@ final class StatusItemController: NSObject {
     private lazy var contextMenu: NSMenu = buildContextMenu()
     private var lastIconName: String = ""
     private let showSettings: () -> Void
+    private let scheduler: TimerStateScheduling
+    private var panelShownOnCycleComplete = false
 
-    init(timerState: TimerState, showSettings: @escaping () -> Void) {
+    convenience init(timerState: TimerState, showSettings: @escaping () -> Void) {
+        self.init(timerState: timerState, scheduler: SystemTimerStateScheduler(), showSettings: showSettings)
+    }
+
+    init(timerState: TimerState, scheduler: TimerStateScheduling, showSettings: @escaping () -> Void) {
         self.timerState = timerState
+        self.scheduler = scheduler
         self.showSettings = showSettings
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         self.statusItem.autosaveName = "Mater.StatusItem"
@@ -30,8 +37,19 @@ final class StatusItemController: NSObject {
         prewarmLikelyIcons()
 
         timerState.onCycleComplete = { [weak self] in
-            self?.showPanel()
+            self?.showPanelWithoutFocus()
         }
+
+        timerState.onCycleTransitionComplete = { [weak self] in
+            self?.closePanelIfShownOnCycleComplete()
+        }
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(panelDidBecomeKey),
+            name: NSWindow.didBecomeKeyNotification,
+            object: timerPanel
+        )
 
         observeIcon()
         setupOutsideClickMonitors()
@@ -64,10 +82,33 @@ final class StatusItemController: NSObject {
     }
 
     func showPanel() {
-        guard let buttonRect = statusItemButtonScreenFrame() else { return }
-        timerPanel.setFrameOrigin(Self.panelOrigin(buttonRect: buttonRect, panelSize: timerPanel.frame.size))
+        guard positionPanel() else { return }
+        panelShownOnCycleComplete = false
         timerPanel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func showPanelWithoutFocus() {
+        guard positionPanel() else { return }
+        panelShownOnCycleComplete = !timerPanel.isVisible
+        timerPanel.orderFrontRegardless()
+    }
+
+    private func positionPanel() -> Bool {
+        guard let buttonRect = statusItemButtonScreenFrame() else { return false }
+        timerPanel.setFrameOrigin(Self.panelOrigin(buttonRect: buttonRect, panelSize: timerPanel.frame.size))
+        return true
+    }
+
+    @objc private func panelDidBecomeKey() {
+        panelShownOnCycleComplete = false
+    }
+
+    private func closePanelIfShownOnCycleComplete() {
+        scheduler.schedule(after: 1.0) { [weak self] in
+            guard let self, self.panelShownOnCycleComplete else { return }
+            self.timerPanel.close()
+        }
     }
 
     private func showContextMenu() {
